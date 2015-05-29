@@ -13,7 +13,6 @@ $(document).ready(function()  {
         // renderer = new THREE.CanvasRenderer();
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.getElementById('container').appendChild(renderer.domElement);
-
         // on initialise la scène
         scene = new THREE.Scene();
 
@@ -40,8 +39,12 @@ $(document).ready(function()  {
         // on fait tourner le cube sur ses axes x et y
         mesh.rotation.x += 0.01;
         mesh.rotation.y += 0.02;
-        mesh.position.y += 1;
-        // on effectue le rendu de la scène
-        renderer.render( scene, camera );
+        //effectue le rendu de la scène
+        renderer.render( scene, camera);
+    }
+
+    renderer.context.canvas.onclick = function(){
+        console.log(this);
+
     }
 });
