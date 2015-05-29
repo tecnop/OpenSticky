@@ -13,24 +13,22 @@
 		
 		<script src="script/main.js">
 		</script>
+		<script id="2d-vertex-shader" type="x-shader/x-vertex">
+		attribute vec2 a_position;
 
-		<style type="text/css">
-			.fakeStyle {
-				width : 200px;
-				height: 100px;
-				margin-right: auto;
-				margin-left : auto;
-				background-color:#CCC;
-				border : 1px solid #BBB;
-				border-radius : 3px;
-			}
-		</style>
+		void main() {
+		  gl_Position = vec4(a_position, 0, 1);
+		}
+		</script>
+
+		<script id="2d-fragment-shader" type="x-shader/x-fragment">
+		void main() {
+		  gl_FragColor = vec4(0,1,0,1);  // green
+		}
+		</script>
 	</head>
 
 	<body>
-		<div class="fakeStyle">
-
-		<p> Test Page </p>
-		</div>
+		<div id="container"></div>
 	</body>
 </html>
