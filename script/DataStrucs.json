@@ -1,0 +1,19 @@
+@Param
+	- color
+	- type Mesh
+	- 
+
+Entity : {
+
+	graphics : {
+		<ThreeObject>
+	},
+	color : {
+		r,
+		v,
+		b,
+	},
+
+
+
+}

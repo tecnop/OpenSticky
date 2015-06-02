@@ -1,0 +1,5 @@
+Go to about:config
+
+Find security.fileuri.strict_origin_policy parameter
+
+Set it to false
