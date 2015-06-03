@@ -20,14 +20,16 @@ var Entity = {
 }
 */
 Entity.random.prototype = {
-	MAX_Z : 2000,
-	Z_STEP : 0.01,
-	MIN_WIDTH : 64,
-	MAX_WIDTH : 64,
-	MIN_HEIGHT : 2,
-	MAX_HEIGHT : 2,
-	MIN_SPEED : 40,
-	MAX_SPEED : 40,
+	MAX_Z : 3000,
+	Z_STEP : 0.2,
+	MIN_WIDTH : 8,
+	MAX_WIDTH : 8,
+	MIN_HEIGHT : 8,
+	MAX_HEIGHT : 8,
+	MIN_SPEED : 1,
+	MAX_SPEED : 25,
+	MIN_DEPTH : 1,
+	MAX_DEPTH : 5,
 	/*
 	key : "entity",
 	actions : {
@@ -68,7 +70,12 @@ Entity.random.prototype = {
 
 		me.color = new Color.float(Math.random(), Math.random(), Math.random() );
 
-		me.geometry = me.definePlaneMesh();
+		if (data && data.cube){
+			me.geometry = me.defineCubeMesh()
+		}
+		else {
+			me.geometry = me.definePlaneMesh();
+		}
 
 		me.material = new THREE.MeshBasicMaterial({
 			color: me.color.toHex(false), 
@@ -111,6 +118,15 @@ Entity.random.prototype = {
 		}
 
 	},
+	defineCubeMesh : function(){
+		var me = this,
+			z = Math.floor(Math.random() * (me.MAX_DEPTH - me.MIN_DEPTH + 1)) + me.MIN_DEPTH,
+			geometry = new THREE.BoxGeometry(me.size.width, me.size.height, z);
+
+		//geometry.computeBoundingSphere();
+
+		return geometry;
+	},
 	definePlaneMesh : function(){
 		var me = this,
 			geometry = new THREE.Geometry();
@@ -125,7 +141,7 @@ Entity.random.prototype = {
 		geometry.faces.push( new THREE.Face3( 0, 1, 2) );
 		geometry.faces.push( new THREE.Face3( 2, 3, 0) );
 
-		geometry.computeBoundingSphere();
+		//geometry.computeBoundingSphere();
 
 		return geometry;
 	},
@@ -147,16 +163,11 @@ Entity.random.prototype = {
 		this.object.position.y += vector.y;
 		this.object.position.z += vector.z;
 	},
-	init : function(data){
-		var me = this;
-	},
 	evaluate : function(three){
-		var col = three.getSquareColor(me, {width : me.size.width, height : me.size.height});
-
-		
+		return this.color.comparate( three.getSquareColor(this, {width : this.size.width, height : this.size.height}) );
 	},
 	onDestinationReach : function(three){
-
+		three.geneticsManager.add(this);
 	},
 
 

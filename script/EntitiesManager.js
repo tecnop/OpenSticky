@@ -12,6 +12,7 @@ EntitiesManager.prototype = {
 		++this.count;
 		this.entities[entity.key] = entity;
 		this.threeWrapper.scenes.main.add(entity.object);
+		this.threeWrapper.geneticsManager.add(entity);
 	},
 	remove : function(entity){
 		if(!this.entities[entity.key])
@@ -19,6 +20,7 @@ EntitiesManager.prototype = {
 
 		--this.count;
 		this.threeWrapper.scenes.main.remove(entity.object);
+		this.threeWrapper.geneticsManager.remove(entity);
 		delete this.entities[entity.key];
 	},
 	calculateCount : function(){

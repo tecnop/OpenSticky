@@ -6,14 +6,15 @@ ThreeWrapper.prototype  = {
 	VIEW_ANGLE : 45,
 	NEAR : 1,
 	FAR : 10000,
-	CAMERA_Z : 1500,
+	CAMERA_Z : 1000,
 	paused : false,
 	count : 4000,
-	defaultImage : 'img/ba.jpg',
+	entitiesSpeedFactor : 1,
+	defaultImage : 'img/reu.jpg',
 	entitiesManager : null,
 	inject : function(data){
 		var me = this;
-
+		me.evaluateMode = false;
 		me.size = data.size || {width : 800, height : 600};
 		me.imagePlaneSize = data.imagePlaneSize || {width : 800, height : 600};
 
@@ -48,19 +49,25 @@ ThreeWrapper.prototype  = {
 		*/
 		// FireFox case
 		$(me.container).bind("DOMMouseScroll",function (e) {
-			var factor = e.altKey ? 50 : 5;
+			var factor = e.ctrlKey ? 50 : 5;
+
+			var fake = new THREE.Vector3(1,1,1),
+				vec = fake.subVectors(
+						me.imagePlaneWrapper.imagePlane.position,
+						me.cameras.main.position
+					);
 
 			// UP
 			if (e.originalEvent.detail && e.originalEvent.detail <= 0)
 			{
 		    	if(me.cameras.main){
-		    		me.cameras.main.position.z -= factor;
+		    		me.cameras.main.position.add(vec.normalize().multiply(new THREE.Vector3(factor,factor,factor)));
 		    	}
 		    }
 		    // Down
 		    else {
 		    	if(me.cameras.main){
-		    		me.cameras.main.position.z += factor;
+		    		me.cameras.main.position.add(vec.normalize().multiply(new THREE.Vector3(-factor,-factor,-factor)));
 		    	}
 		    }
 
@@ -75,18 +82,24 @@ ThreeWrapper.prototype  = {
 
 		// Others
 		$(me.container).bind("mousewheel",function (e) {
-			var factor = e.altKey ? 50 : 5;
+			var factor = e.ctrlKey ? 50 : 5;
+
+			var fake = new THREE.Vector3(1,1,1),
+				vec = fake.subVectors(
+						me.imagePlaneWrapper.imagePlane.position,
+						me.cameras.main.position
+					);
 
 			// UP
 			if (e.originalEvent.wheelDelta && e.originalEvent.wheelDelta >= 0){
 		        if(me.cameras.main){
-		    		me.cameras.main.position.z -= factor;
+		    		me.cameras.main.position.add(vec.normalize().multiply(new THREE.Vector3(factor,factor,factor)));
 		    	}
 		    }
 		    // Down
 		    else {
 		    	if(me.cameras.main){
-		    		me.cameras.main.position.z += factor;
+		    		me.cameras.main.position.add(vec.normalize().multiply(new THREE.Vector3(-factor,-factor,-factor)));
 		    	}
 		    }
 
@@ -101,7 +114,7 @@ ThreeWrapper.prototype  = {
 				
 
 				if (e.buttons === 1){
-					var factor = e.altKey ? 50 : 5;
+					var factor = e.ctrlKey ? 50 : 5;
 
 					var step = e.clientX > me.size.width/2 ? factor : -factor;
 
@@ -176,7 +189,7 @@ ThreeWrapper.prototype  = {
 
 		for(var i = 0; i < data.count; ++i){
 
-			var inc = new Entity.random();
+			var inc = new Entity.random({cube : true});
 
 			var vec = me.getRandomPositionInImagePlane(inc.object.position.z);
 
@@ -216,16 +229,10 @@ ThreeWrapper.prototype  = {
 		return this.imagePlaneWrapper.hiddenCanvas.getSquareColor(this.imagePlaneWrapper.imagePlane, entity, size);
 	},
 	calculatePopulationFitness : function (){
-		var imgRes = this.imagePlaneWrapper.hiddenCanvas.img.width * this.imagePlaneWrapper.hiddenCanvas.img.height;
-
-		var fakeEntity = new Entity.random();
-
-		var entRes = fakeEntity.MIN_WIDTH * fakeEntity.MAX_WIDTH;
+		var fakeEntity = new Entity.random(),
+			required = (this.imagePlaneWrapper.hiddenCanvas.img.width * this.imagePlaneWrapper.hiddenCanvas.img.height) / (fakeEntity.MIN_WIDTH * fakeEntity.MAX_WIDTH);
 		
-		var res = imgRes > 2 / (entRes * this.entitiesManager.count);
-
-
-
+		return (required*2) - this.entitiesManager.count;
 	},
 	/*
 	# Data : {
@@ -289,6 +296,12 @@ ThreeWrapper.prototype  = {
 		me.time = time;
 		me.start();
 	},
+	speedUp : function(){
+		this.entitiesSpeedFactor *=2 ;
+	},
+	slowDown : function(){
+		this.entitiesSpeedFactor /= 2;
+	},
 	pause : function(){
 		if (this.paused){
 			this.start();
@@ -317,7 +330,6 @@ ThreeWrapper.prototype  = {
 			// http://www.paulirish.com/2011/requestanimationframe-for-smart-animating/
 			requestAnimationFrame(run);
 
-			//var currTime = new Date();
 
 			for( var key in me.entitiesManager.entities){
 
@@ -332,7 +344,7 @@ ThreeWrapper.prototype  = {
 						me.entitiesManager.entities[key].object.position
 					);
 					
-					if(me.entitiesManager.entities[key].speed >= me.entitiesManager.entities[key].destination.distanceTo(me.entitiesManager.entities[key].object.position)){
+					if( (me.entitiesManager.entities[key].speed * me.entitiesSpeedFactor) >= me.entitiesManager.entities[key].destination.distanceTo(me.entitiesManager.entities[key].object.position)){
 						me.entitiesManager.entities[key].object.position = me.entitiesManager.entities[key].destination;
 						me.entitiesManager.entities[key].onDestinationReach(me);
 						me.entitiesManager.entities[key].destination = null;
@@ -340,14 +352,21 @@ ThreeWrapper.prototype  = {
 					}
 					else {
 						me.entitiesManager.entities[key].object.position.add(
-							vec.normalize().multiply(new THREE.Vector3(
-								me.entitiesManager.entities[key].speed,
-								me.entitiesManager.entities[key].speed,
-								me.entitiesManager.entities[key].speed))
+							vec.normalize().multiply(
+								new THREE.Vector3(
+									me.entitiesManager.entities[key].speed * me.entitiesSpeedFactor,
+									me.entitiesManager.entities[key].speed * me.entitiesSpeedFactor,
+									me.entitiesManager.entities[key].speed * me.entitiesSpeedFactor
+								)
+							)
 						);
 					}
 				}
-			}		
+			}
+
+			if(me.evaluateMode){
+				me.geneticsManager.fastEvaluation();
+			}
 
 			me.renderer.render(me.scenes.main, me.cameras.main);
 		}

@@ -17,27 +17,21 @@ $(document).ready(function()  {
 		context : threeWrapper,
 		keys : {
 			plus : function(three){
-				three.speedUpFPS() ;
+				three.speedUp() ;
 			},
 			minus : function(three){
-				three.slowDownFPS() ;
+				three.slowDown() ;
 			},
-			'z' : function(three){
-				three.testEntity.add({x:0,y:2,z:0});
+			'h' : function(three){
+				three.imagePlaneWrapper.imagePlane.visible = !three.imagePlaneWrapper.imagePlane.visible;
 			},
-			'q' : function(three){
-				three.testEntity.add({x:-2,y:0,z:0});
-			},
-			's' : function(three){
-				three.testEntity.add({x:0,y:-2,z:0});
-			},
-			'd' : function(three){
-				three.testEntity.add({x:2,y:0,z:0});
+			'e' : function(three){
+				three.evaluateMode = !three.evaluateMode;
 			},
 			'p' : function(three){
 				three.pause();
 			},
-			't' : function(three){
+			'c' : function(three){
 
 				for(var k in three.entitiesManager.entities){
 
@@ -52,7 +46,7 @@ $(document).ready(function()  {
 				}
 				
 			},
-			'y' : function(three){
+			'm' : function(three){
 
 				for(var k in three.entitiesManager.entities){
 					three.entitiesManager.entities[k].destination = three.getRandomPositionInImagePlane(

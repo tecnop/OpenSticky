@@ -57,11 +57,7 @@ Color.float.prototype = {
 	getCode : function(){
 	},
 	comparate : function(color){
-		var r = Math.abs(this.r - color.r),
-			g = Math.abs(this.g - color.g),
-			b = Math.abs(this.b - color.b);
-
-		return (r+g+b) / 3;
+		return (Math.abs(this.r - color.r) + Math.abs(this.g - color.g) + Math.abs(this.b - color.b)) / 3;
 	}
 }
 
