@@ -55,6 +55,13 @@ Color.float.prototype = {
 		return stringify ? '0x' + r + g + b  : parseInt('0x' + r + g + b );
 	},
 	getCode : function(){
+	},
+	comparate : function(color){
+		var r = Math.abs(this.r - color.r),
+			g = Math.abs(this.g - color.g),
+			b = Math.abs(this.b - color.b);
+
+		return (r+g+b) / 3;
 	}
 }
 

@@ -4,9 +4,13 @@ var ThreeWrapper = function (data){
 ThreeWrapper.prototype  = {
 	// Camera attributes
 	VIEW_ANGLE : 45,
-	NEAR : 0.1,
+	NEAR : 1,
 	FAR : 10000,
+	CAMERA_Z : 1500,
 	paused : false,
+	count : 4000,
+	defaultImage : 'img/ba.jpg',
+	entitiesManager : null,
 	inject : function(data){
 		var me = this;
 
@@ -17,8 +21,12 @@ ThreeWrapper.prototype  = {
 		
 		me.time = {
 			lastTime : 0,
-			currTime : 0,
+			deltaTime : 1000/60,
 		}
+
+		me.entitiesManager = new EntitiesManager({threeWrapper : me});
+
+		me.geneticsManager = new GeneticsManager({threeWrapper : me});
 
 		me.imagePlaneWrapper = {
 			imagePlane : null,
@@ -34,23 +42,25 @@ ThreeWrapper.prototype  = {
 		me.cameras = {};
 
 
+		
 		/*
 			MouseWheel listener
 		*/
 		// FireFox case
 		$(me.container).bind("DOMMouseScroll",function (e) {
+			var factor = e.altKey ? 50 : 5;
 
 			// UP
 			if (e.originalEvent.detail && e.originalEvent.detail <= 0)
 			{
 		    	if(me.cameras.main){
-		    		me.cameras.main.position.z -= 5;
+		    		me.cameras.main.position.z -= factor;
 		    	}
 		    }
 		    // Down
 		    else {
 		    	if(me.cameras.main){
-		    		me.cameras.main.position.z += 5;
+		    		me.cameras.main.position.z += factor;
 		    	}
 		    }
 
@@ -61,19 +71,22 @@ ThreeWrapper.prototype  = {
 
 		});
 
+	
+
 		// Others
 		$(me.container).bind("mousewheel",function (e) {
+			var factor = e.altKey ? 50 : 5;
 
 			// UP
 			if (e.originalEvent.wheelDelta && e.originalEvent.wheelDelta >= 0){
 		        if(me.cameras.main){
-		    		me.cameras.main.position.z -= 5;
+		    		me.cameras.main.position.z -= factor;
 		    	}
 		    }
 		    // Down
 		    else {
 		    	if(me.cameras.main){
-		    		me.cameras.main.position.z += 5;
+		    		me.cameras.main.position.z += factor;
 		    	}
 		    }
 
@@ -82,24 +95,36 @@ ThreeWrapper.prototype  = {
 		   	return false;
 		});
 
-		// 
-		$(me.container).bind("mousemove",function (e) {
-			
-			if (e.buttons === 1){
-				var step = e.clientX > me.size.width/2 ? 5 : -5;
-				var r = me.cameras.main.position.distanceTo(me.imagePlaneWrapper.imagePlane.position);
+		if(data.noOrbitControl){
+
+			$(me.container).bind("mousemove",function (e) {
 				
-				if(e.clientX > me.size.width/2) {
 
-					me.cameras.main.position.x += 5;
-				}
-				else {
-					me.cameras.main.position.x -= 5;
-				}
+				if (e.buttons === 1){
+					var factor = e.altKey ? 50 : 5;
 
-				me.cameras.main.lookAt(me.imagePlaneWrapper.imagePlane.position);
-			}
-		});
+					var step = e.clientX > me.size.width/2 ? factor : -factor;
+
+					var r = me.cameras.main.position.distanceTo(me.imagePlaneWrapper.imagePlane.position);
+					
+					if(e.clientX > me.size.width/2) {
+
+						me.cameras.main.position.x += factor;
+					}
+					else {
+						me.cameras.main.position.x -= factor;
+					}
+
+					me.cameras.main.lookAt(me.imagePlaneWrapper.imagePlane.position);
+				}
+			});
+
+			// Click ?
+			$(me.container).on('click', function(e){
+				//console.log(e);
+			});
+
+		}
 
 		data.container.append(me.container);
 
@@ -108,21 +133,6 @@ ThreeWrapper.prototype  = {
 	initThree : function(){
 		var me = this;
 		THREE.ImageUtils.crossOrigin = "anonymous"; 
-		//
-
-		// shim layer with setTimeout fallback
-		/*
-		window.requestAnimFrame = (function(){
-			return  window.requestAnimationFrame       ||
-				window.webkitRequestAnimationFrame ||
-				window.mozRequestAnimationFrame    ||
-				function( callback ){
-					window.setTimeout(callback, 1000 / 60);
-			};
-		})();
-		*/
-		//
-
 
 		me.renderer = new THREE.WebGLRenderer();
 
@@ -136,9 +146,12 @@ ThreeWrapper.prototype  = {
 		me.scenes.main = new THREE.Scene();
 
 
+		var controls = new THREE.OrbitControls( me.cameras.main );
+
+
 		me.scenes.main.add(me.cameras.main);
 
-		me.cameras.main.position.z = 300;
+		me.cameras.main.position.z = me.CAMERA_Z;
 
 		me.renderer.setSize(me.size.width, me.size.height);
 
@@ -151,17 +164,47 @@ ThreeWrapper.prototype  = {
 		pointLight.position.y = 50;
 		pointLight.position.z = 130;
 
-		me.defineImagePlane({path : 'img/abo.png'});
-
-		me.testEntity = new Entity.random();
-
-		
+		me.defineImagePlane({path : me.defaultImage}, function(){
+			me.initEntities({count : me.count});
+		});
 
 		// add to the scene
-		me.scenes.main.add(me.testEntity.object);
 		me.scenes.main.add(pointLight);
+	},
+	initEntities : function(data){
+		var me = this;
+
+		for(var i = 0; i < data.count; ++i){
+
+			var inc = new Entity.random();
+
+			var vec = me.getRandomPositionInImagePlane(inc.object.position.z);
+
+			inc.object.position.x = vec.x;
+			inc.object.position.y = vec.y;
+
+			me.entitiesManager.add(inc);
+
+		}
+	},
+	getRandomPositionInImagePlane : function(z){
+		var rdmX = Math.floor((Math.random()*(this.imagePlaneWrapper.rect.bottomRight.x*2))),
+			rdmY = Math.floor((Math.random()*(this.imagePlaneWrapper.rect.topLeft.y*2)));
 
 
+		return new THREE.Vector3(
+			rdmX - this.imagePlaneWrapper.rect.bottomRight.x,
+			rdmY - this.imagePlaneWrapper.rect.topLeft.y,
+			z
+		);
+	},
+	// Doesnt work with negative range .. (as -10 -> 10).
+	getRandomPositionInRect : function(rect, z){
+		return new THREE.Vector3(
+			Math.floor(Math.random() * (rect.topLeft.x - rect.bottomRight.x + 1)) + rect.topLeft.x,
+			Math.floor(Math.random() * (rect.bottomRight.y - rect.topLeft.y + 1)) + rect.bottomRight.y,
+			z
+		);
 	},
 	getPixelColor : function(coor){
 		return this.imagePlaneWrapper.hiddenCanvas.getPixel(this.imagePlaneWrapper.imagePlane , coor);
@@ -172,13 +215,25 @@ ThreeWrapper.prototype  = {
 	getSquareColor : function(entity, size){
 		return this.imagePlaneWrapper.hiddenCanvas.getSquareColor(this.imagePlaneWrapper.imagePlane, entity, size);
 	},
+	calculatePopulationFitness : function (){
+		var imgRes = this.imagePlaneWrapper.hiddenCanvas.img.width * this.imagePlaneWrapper.hiddenCanvas.img.height;
+
+		var fakeEntity = new Entity.random();
+
+		var entRes = fakeEntity.MIN_WIDTH * fakeEntity.MAX_WIDTH;
+		
+		var res = imgRes > 2 / (entRes * this.entitiesManager.count);
+
+
+
+	},
 	/*
 	# Data : {
 		path : ,
 
 	}
 	*/
-	defineImagePlane : function(data){
+	defineImagePlane : function(data, callback){
 		var me = this;
 
 		if(me.imagePlaneWrapper.imagePlane){
@@ -209,22 +264,23 @@ ThreeWrapper.prototype  = {
 				imgTex
 			);
 
+			me.imagePlaneWrapper.rect = {
+				topLeft : {
+					x : -( parseInt(hiddenCanvas.img.width/2) ),
+					y : ( parseInt(hiddenCanvas.img.height/2) ),
+				},
+				bottomRight : {
+					x : ( parseInt(hiddenCanvas.img.width/2) ),
+					y : -( parseInt(hiddenCanvas.img.height/2) ),
+				}
+			}
+
 			me.imagePlaneWrapper.imagePlane.overdraw = true;
 			me.scenes.main.add(me.imagePlaneWrapper.imagePlane);
+
+			if(callback)
+				callback();
 		});
-	},
-	fakeMove : function(){
-		this.sphere.position.x += 100;
-	},
-	speedUp : function(){
-		this.time =this.time > 1000 ? this.time - 100 : 
-						this.time > 100 ? this.time - 10 :
-							this.time > 10 ? this.time - 1 : 1;
-
-	},
-	// TODO
-	slowDown : function(){
-
 	},
 	// TO USE
 	changeFramerate : function(time){
@@ -249,19 +305,49 @@ ThreeWrapper.prototype  = {
 		this.paused = true;
 	},
 	render: function(){
-		var me = this;
+		var me = this,
+			fakeVector = new THREE.Vector3(0,0,0);
 
 		function run () {
 
 			if(me.paused)
 				return;
 
-
 			// ref :
 			// http://www.paulirish.com/2011/requestanimationframe-for-smart-animating/
 			requestAnimationFrame(run);
-			
-			//me.testEntity.object.rotation.z += 0.05;
+
+			//var currTime = new Date();
+
+			for( var key in me.entitiesManager.entities){
+
+				for(var i = 0, len = me.entitiesManager.entities[key].actions.continuous.length; i<len; ++i ){
+					me.entitiesManager.entities[key].actions.continuous[i](me);
+				}
+
+				if(me.entitiesManager.entities[key].destination){
+
+					var vec = fakeVector.subVectors(
+						me.entitiesManager.entities[key].destination,
+						me.entitiesManager.entities[key].object.position
+					);
+					
+					if(me.entitiesManager.entities[key].speed >= me.entitiesManager.entities[key].destination.distanceTo(me.entitiesManager.entities[key].object.position)){
+						me.entitiesManager.entities[key].object.position = me.entitiesManager.entities[key].destination;
+						me.entitiesManager.entities[key].onDestinationReach(me);
+						me.entitiesManager.entities[key].destination = null;
+
+					}
+					else {
+						me.entitiesManager.entities[key].object.position.add(
+							vec.normalize().multiply(new THREE.Vector3(
+								me.entitiesManager.entities[key].speed,
+								me.entitiesManager.entities[key].speed,
+								me.entitiesManager.entities[key].speed))
+						);
+					}
+				}
+			}		
 
 			me.renderer.render(me.scenes.main, me.cameras.main);
 		}
@@ -271,3 +357,17 @@ ThreeWrapper.prototype  = {
 
 }
 
+
+
+
+// shim layer with setTimeout fallback
+/*
+window.requestAnimFrame = (function(){
+	return  window.requestAnimationFrame       ||
+		window.webkitRequestAnimationFrame ||
+		window.mozRequestAnimationFrame    ||
+		function( callback ){
+			window.setTimeout(callback, 1000 / 60);
+	};
+})();
+*/

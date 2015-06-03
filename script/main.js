@@ -39,18 +39,25 @@ $(document).ready(function()  {
 			},
 			't' : function(three){
 
-				var res = three.testEntity.actions[0](three);
-				if(res && res.length >= 3){
-					three.testEntity.setColor(new Color.decimal(res[0],res[1],res[2]));
-				}
+				for(var k in three.entitiesManager.entities){
 
+					var col = three.entitiesManager.entities[k].actions.rules.getsquare(three);
+					
+			
+
+					if(col){
+						three.entitiesManager.entities[k].setColor(col);
+					}
+	
+				}
+				
 			},
 			'y' : function(three){
 
-				var col = three.testEntity.actions[1](three);
-
-				if (col) {
-					three.testEntity.setColor(col);
+				for(var k in three.entitiesManager.entities){
+					three.entitiesManager.entities[k].destination = three.getRandomPositionInImagePlane(
+						three.entitiesManager.entities[k].object.position.z
+					);
 				}
 			},
 		}

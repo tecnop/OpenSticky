@@ -2,11 +2,7 @@ var HiddenCanvas = function(data){
 	this.init(data);
 };
 HiddenCanvas.prototype = {
-	active : false,
-	canvas : null,
-	topLeft : {},
-	bottomRight : {},
-	img : null,
+	
 	init : function(data){
 		var me = this;
 		me.canvas = data.canvas;
@@ -16,8 +12,12 @@ HiddenCanvas.prototype = {
 	},
 	loadImage : function(path, callback){
 		var me = this;
+		
 		me.img = new Image();
 
+		me.active = false;
+		me.topLeft = {};
+		me.bottomRight = {};
 
 		me.img.src = path;
 		me.img.onload = function(){
