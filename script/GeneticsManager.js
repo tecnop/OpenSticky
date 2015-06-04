@@ -222,6 +222,17 @@ GeneticsManager.prototype = {
 		}
 
 
+		for ( var i = 0; i < res.levels[3].length; ++i) {
+			for ( var j = 0; j < res.levels[4].length; ++j) {
+				res.levels[4][j].mutate(res.levels[3][i]);
+			}
+		}
+
+		for ( var i = 0; i < res.levels[3].length; ++i) {
+			for ( var j = 0; j < res.levels[2].length; ++j) {
+				res.levels[2][j].mutate(res.levels[3][i]);
+			}
+		}
 
 	},
 	calculateFitnessAverage : function(data){

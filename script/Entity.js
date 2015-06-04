@@ -21,15 +21,15 @@ var Entity = {
 */
 Entity.random.prototype = {
 	MAX_Z : 3000,
-	Z_STEP : 0.2,
-	MIN_WIDTH : 32,
-	MAX_WIDTH : 32,
-	MIN_HEIGHT : 4,
-	MAX_HEIGHT : 4,
+	Z_STEP : 0.3,
+	MIN_WIDTH : 16,
+	MAX_WIDTH : 16,
+	MIN_HEIGHT : 16,
+	MAX_HEIGHT : 16,
 	MIN_SPEED : 1,
 	MAX_SPEED : 25,
 	MIN_DEPTH : 1,
-	MAX_DEPTH : 5,
+	MAX_DEPTH : 10,
 	/*
 	key : "entity",
 	actions : {
