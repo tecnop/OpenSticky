@@ -8,9 +8,9 @@ ThreeWrapper.prototype  = {
 	FAR : 10000,
 	CAMERA_Z : 1000,
 	paused : false,
-	count : 4000,
+	count : 5000,
 	entitiesSpeedFactor : 1,
-	defaultImage : 'img/reu.jpg',
+	defaultImage : 'img/reunion.jpg',
 	entitiesManager : null,
 	inject : function(data){
 		var me = this;
