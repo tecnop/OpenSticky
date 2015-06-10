@@ -21,15 +21,16 @@ var Entity = {
 */
 Entity.random.prototype = {
 	MAX_Z : 3000,
-	Z_STEP : 0.3,
-	MIN_WIDTH : 16,
-	MAX_WIDTH : 16,
-	MIN_HEIGHT : 16,
-	MAX_HEIGHT : 16,
+	Z_STEP : 0.1,
+	MIN_WIDTH : 2,
+	MAX_WIDTH : 32,
+	MIN_HEIGHT : 2,
+	MAX_HEIGHT : 32,
 	MIN_SPEED : 1,
 	MAX_SPEED : 25,
 	MIN_DEPTH : 1,
-	MAX_DEPTH : 10,
+	MAX_DEPTH : 5,
+	DEFAULT_OPACITY : 0.8,
 	/*
 	key : "entity",
 	actions : {
@@ -61,14 +62,14 @@ Entity.random.prototype = {
 		me.destination = null;
 
 		me.size = {};
-		me.size.midWidth = width - (width % 2);
-		me.size.midHeight= height - (height % 2);
+		me.size.midWidth = width <= 1 ? 2 : width - (width % 2);
+		me.size.midHeight= height <= 1 ? 2 : height - (height % 2);
 		me.size.width = me.size.midWidth *2;
 		me.size.height = me.size.midHeight *2;
 
 		me.speed = Math.floor(Math.random() * (me.MAX_SPEED - me.MIN_SPEED + 1)) + me.MIN_SPEED;
 
-		me.color = new Color.float(Math.random(), Math.random(), Math.random() );
+		me.color = new Color.float(Math.random(), Math.random(), Math.random() , me.DEFAULT_ALPHA);
 
 		if (data && data.cube){
 			me.geometry = me.defineCubeMesh()
@@ -77,11 +78,16 @@ Entity.random.prototype = {
 			me.geometry = me.definePlaneMesh();
 		}
 
-		me.material = new THREE.MeshBasicMaterial({
-			color: me.color.toHex(false), 
-			side: THREE.DoubleSide
-		});
+		var incCol = new THREE.Color(Math.random(), Math.random(), Math.random());
 
+		//MeshBasicMaterial - MeshLambertMaterial - MeshPhongMaterial
+		me.material = new THREE.MeshLambertMaterial({
+			color: me.color.toHex(false), 
+		});
+		//me.material.emissive = new THREE.Color(0.5,0.5,0.5);
+		
+		me.material.transparent = true;
+		me.material.opacity = me.DEFAULT_OPACITY;
 
 		me.object = new THREE.Mesh(me.geometry, me.material);
 		me.object.position.z = me.getNextZ();
@@ -153,9 +159,10 @@ Entity.random.prototype = {
 		var me = this;
 		me.color = color;
 		me.material.color = {
-			r : me.color.r, 
+			r : me.color.r,
 			g : me.color.g,
-			b : me.color.b
+			b : me.color.b,
+			a : me.color.a || 1.0
 		};
 	},
 	add : function(vector) {

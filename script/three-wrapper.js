@@ -8,7 +8,7 @@ ThreeWrapper.prototype  = {
 	FAR : 10000,
 	CAMERA_Z : 1000,
 	paused : false,
-	count : 3000,
+	count : 2000,
 	entitiesSpeedFactor : 1,
 	defaultImage : 'img/jap.jpg',
 	entitiesManager : null,
@@ -173,9 +173,9 @@ ThreeWrapper.prototype  = {
 		var pointLight = new THREE.PointLight(0xFFFFFF);
 
 		// set its position
-		pointLight.position.x = 10;
-		pointLight.position.y = 50;
-		pointLight.position.z = 130;
+		pointLight.position.x = 0;
+		pointLight.position.y = 0;
+		pointLight.position.z = 3000;
 
 		me.defineImagePlane({path : me.defaultImage}, function(){
 			me.initEntities({count : me.count});

@@ -13,7 +13,7 @@ var Color = {
 		me.db = me.floatToDecimal(b);
 
 		me.a = a || 1.0;
-		me.da = a || 255;
+		me.da = a ?  me.floatToDecimal(a) : 255;
 	},
 	// 0 -> 255
 	decimal : function(r,g,b,a){
