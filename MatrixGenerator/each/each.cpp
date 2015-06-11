@@ -14,19 +14,42 @@ int LARGEUR = 4, LONGUEUR = 4;
 std::ofstream myfile;
 int cpt = 0;
 const char AlphabetLower[2]{'0', '1'};
+enum dir { UP = 0, DOWN, RIGHT, LEFT };
 
-char up(std::vector<std::string> s, int i, int j)		{ return i - 1 >= 0			? s[i - 1][j] : '0'; };
-char down(std::vector<std::string> s, int i, int j)		{ return i + 1 < LONGUEUR	? s[i + 1][j] : '0'; };
-char right(std::vector<std::string> s, int i, int j)	{ return j + 1 < LARGEUR	? s[i][j + 1] : '0'; };
-char left(std::vector<std::string> s, int i, int j)		{ return j - 1 >= 0			? s[i][j - 1] : '0'; };
+char up(std::vector<std::string> s, int i, int j) { return i - 1 >= 0 ? s[i - 1][j] : '0'; };
+char down(std::vector<std::string> s, int i, int j) { return i + 1 < LONGUEUR ? s[i + 1][j] : '0'; };
+char right(std::vector<std::string> s, int i, int j) { return j + 1 < LARGEUR ? s[i][j + 1] : '0'; };
+char left(std::vector<std::string> s, int i, int j) { return j - 1 >= 0 ? s[i][j - 1] : '0'; };
 
-char(*pointUP)(std::vector<std::string>, int a, int b)		= up;
-char(*pointDOWN)(std::vector<std::string>, int a, int b)	= down;
-char(*pointRIGHT)(std::vector<std::string>, int a, int b)	= right;
-char(*pointLEFT)(std::vector<std::string>, int a, int b)	= left;
+char(*pointUP)(std::vector<std::string>, int a, int b) = up;
+char(*pointDOWN)(std::vector<std::string>, int a, int b) = down;
+char(*pointRIGHT)(std::vector<std::string>, int a, int b) = right;
+char(*pointLEFT)(std::vector<std::string>, int a, int b) = left;
 
 std::map<int, std::vector<std::string>> tabs = std::map<int, std::vector<std::string>>();
-std::vector<char(*)(std::vector<std::string>, int, int)> functions{ up, down, right, left };
+std::vector<char(*)(std::vector<std::string>, int, int)> functions{up, down, right, left};
+
+std::vector<std::string>* getNear(std::vector<std::string> *result, int i, int j)
+{
+	(*result)[i][j] = '0';
+	if (functions[UP](*result, i, j) == '1')
+	{
+		getNear(result, i - 1, j);
+	}
+	if (functions[DOWN](*result, i, j) == '1')
+	{
+		getNear(result, i + 1, j);
+	}
+	if (functions[RIGHT](*result, i, j) == '1')
+	{
+		getNear(result, i, j + 1);
+	}
+	if (functions[LEFT](*result, i, j) == '1')
+	{
+		getNear(result, i, j - 1);
+	}
+	return result;
+}
 
 bool test(std::string s, int nb)
 {
@@ -45,24 +68,28 @@ bool test(std::string s, int nb)
 	{
 		for (int j = 0; j < strings[i].size(); ++j)
 		{
-			
 			if (strings[i][j] == '1')
 			{
-				bool continuer = false;
-				for (int k = 0; k < functions.size(); ++k)
+				std::vector<std::string>* result = new std::vector<std::string>();
+				for (auto it = strings.begin(); it != strings.end(); ++it)
+					result->push_back(*it);
+				getNear(result, i, j);
+
+				for (int i = 0; i < result->size(); ++i)
 				{
-					if (functions[k](strings, i, j) == '1')
+					for (int j = 0; j < (*result)[i].size(); ++j)
 					{
-						continuer = true;
-						break;
+						if ((*result)[i][j] == '1')
+						{
+							return false;
+						}
 					}
 				}
-				if (!continuer)
-					return false;
+				return true;
 			}
 		}
 	}
-	return true;
+	
 }
 
 void Generate(unsigned int length, std::string s)
@@ -98,11 +125,11 @@ void generateFileByString()
 	{
 		for (int j = 0; j < tabs[i].size(); ++j)
 		{
-			myfile << "["	<< '"' << tabs[i][j].substr(0, 4) << '"' << ",\n";
-			myfile << '"'	<< tabs[i][j].substr(4, 4) << '"' << ",\n";
-			myfile << '"'	<< tabs[i][j].substr(8, 4) << '"' << ",\n";
-			myfile << '"'	<< tabs[i][j].substr(12, 4) << '"' << ",\n";
-			if(i == 15 && j == tabs[i].size()-1)
+			myfile << "[" << '"' << tabs[i][j].substr(0, 4) << '"' << ",\n";
+			myfile << " " <<'"' << tabs[i][j].substr(4, 4) << '"' << ",\n";
+			myfile << " " << '"' << tabs[i][j].substr(8, 4) << '"' << ",\n";
+			myfile << " " << '"' << tabs[i][j].substr(12, 4) << '"' << ",\n";
+			if (i == 15 && j == tabs[i].size() - 1)
 				myfile << "]\n";
 			else
 				myfile << "],\n";
