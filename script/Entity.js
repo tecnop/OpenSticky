@@ -177,6 +177,6 @@ Entity.random.prototype = {
 		three.geneticsManager.add(this);
 	},
 
-
 }
+
 Entity.fromCode.prototype = Entity.random.prototype;

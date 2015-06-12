@@ -32,6 +32,9 @@
 		<script src="script/GeneticsManager.js">
 		</script>
 		
+		<script src="script/Componentz.js">
+		</script>
+		
 		<script src="script/three-wrapper.js">
 		</script>
 
@@ -39,7 +42,19 @@
 		</script>
 
 		<style type="text/css">
-			
+
+			.bottom-content {
+				width: 100%;
+				background-color: #ECECEC;
+				border: 1px solid #ccc;
+				border-radius: 4px;
+				padding: 5px;
+				margin-top : 10px;
+				margin-bottom : 2px;
+				margin-left : 2px;
+				margin-right : 2px;
+
+			}
 		</style>
 	</head>
 
@@ -51,6 +66,9 @@
 
 		<div class="bottom-content">
 			<canvas style="display:none" id="hidden-canvas"></canvas>
+			<div id="dragNdrop">
+			</div>
+
 		</div>
 	</body>
 

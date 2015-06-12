@@ -8,15 +8,17 @@ ThreeWrapper.prototype  = {
 	FAR : 10000,
 	CAMERA_Z : 1000,
 	paused : false,
-	count : 2000,
+	count : 100,
 	entitiesSpeedFactor : 1,
 	defaultImage : 'img/jap.jpg',
 	entitiesManager : null,
 	inject : function(data){
 		var me = this;
 		me.evaluateMode = false;
+
 		me.size = data.size || {width : 800, height : 600};
 		me.imagePlaneSize = data.imagePlaneSize || {width : 800, height : 600};
+		me.paused = data.paused || false;
 
 		me.container = $('<div style="width:' + me.size.width + 'px;height:' + me.size.height + 'px;">');
 		
@@ -234,12 +236,6 @@ ThreeWrapper.prototype  = {
 		
 		return (required*2) - this.entitiesManager.count;
 	},
-	/*
-	# Data : {
-		path : ,
-
-	}
-	*/
 	defineImagePlane : function(data, callback){
 		var me = this;
 
@@ -260,6 +256,15 @@ ThreeWrapper.prototype  = {
 				map:srcImg,
 				
 			});
+			
+
+			var image = new Image();
+			image.onload = function () {
+			    texture.image = image;
+			    texture.needsUpdate = true;
+			};
+			image.src = dataURI;
+
 
 			imgTex.map.needsUpdate = true; 
 
