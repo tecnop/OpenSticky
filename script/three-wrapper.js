@@ -3,12 +3,16 @@ var ThreeWrapper = function (data){
 }
 ThreeWrapper.prototype  = {
 	// Camera attributes
+	MAX_Z : 5000,
+	Z_GAP : 300,
+	Z_STEP : 0.1,
 	VIEW_ANGLE : 45,
 	NEAR : 1,
 	FAR : 10000,
 	CAMERA_Z : 1000,
 	paused : false,
 	count : 100,
+	gridStep : 100,
 	entitiesSpeedFactor : 1,
 	defaultImage : 'img/jap.jpg',
 	entitiesManager : null,
@@ -180,7 +184,16 @@ ThreeWrapper.prototype  = {
 		pointLight.position.z = 3000;
 
 		me.defineImagePlane({path : me.defaultImage}, function(){
-			me.initEntities({count : me.count});
+			//me.initEntities({count : me.count});
+
+			me.grid = new Grid({
+				step : me.gridStep,
+				imagePlaneWrapper : me.imagePlaneWrapper
+			});
+
+			me.initSquaredEntities({count : me.count});
+
+			
 		});
 
 		// add to the scene
@@ -200,6 +213,35 @@ ThreeWrapper.prototype  = {
 
 			me.entitiesManager.add(inc);
 
+		}
+	},
+	initSquaredEntities : function(data){
+
+		this.inc = new Entity.squared({
+			speed : 10,
+			depth : 5,
+			squareWidth : this.gridStep,
+			squareHeight : this.gridStep,
+			color : new THREE.Color(1.0,0,0), 
+			matrix : {
+				col : 4,
+				row : 4,
+				intMatrix : Datas.cubesByInt[Math.floor(Math.random() * Datas.cubesByInt.length)],
+			}
+		})
+
+		this.inc.pushIntoScene(this.scenes.main);
+		this.entitiesManager.add(this.inc);
+		this.grid.addSquaredEntityByCoor(this.inc);
+		/*1011111001111101 NAZII*/
+		
+		
+		
+
+		return;
+		for(var i = 0; i < data.count; ++i){
+			
+			//Datas.cubesByInt.len
 		}
 	},
 	getRandomPositionInImagePlane : function(z){
@@ -347,17 +389,17 @@ ThreeWrapper.prototype  = {
 
 					var vec = fakeVector.subVectors(
 						me.entitiesManager.entities[key].destination,
-						me.entitiesManager.entities[key].object.position
+						me.entitiesManager.entities[key].getPosition()
 					);
-					
-					if( (me.entitiesManager.entities[key].speed * me.entitiesSpeedFactor) >= me.entitiesManager.entities[key].destination.distanceTo(me.entitiesManager.entities[key].object.position)){
-						me.entitiesManager.entities[key].object.position = me.entitiesManager.entities[key].destination;
+
+					if( (me.entitiesManager.entities[key].speed * me.entitiesSpeedFactor) >= me.entitiesManager.entities[key].destination.distanceTo(me.entitiesManager.entities[key].getPosition())){
+						me.entitiesManager.entities[key].setPosition(me.entitiesManager.entities[key].destination);
 						me.entitiesManager.entities[key].onDestinationReach(me);
 						me.entitiesManager.entities[key].destination = null;
 
 					}
 					else {
-						me.entitiesManager.entities[key].object.position.add(
+						me.entitiesManager.entities[key].add(
 							vec.normalize().multiply(
 								new THREE.Vector3(
 									me.entitiesManager.entities[key].speed * me.entitiesSpeedFactor,

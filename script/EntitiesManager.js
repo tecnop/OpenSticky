@@ -11,8 +11,8 @@ EntitiesManager.prototype = {
 	add : function(entity){
 		++this.count;
 		this.entities[entity.key] = entity;
-		this.threeWrapper.scenes.main.add(entity.object);
-		this.threeWrapper.geneticsManager.add(entity);
+		//this.threeWrapper.scenes.main.add(entity.object);
+		//this.threeWrapper.geneticsManager.add(entity);
 	},
 	remove : function(entity){
 		if(!this.entities[entity.key])

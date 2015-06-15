@@ -8,7 +8,7 @@ $(document).ready(function()  {
 	//*
 	var threeWrapper = new ThreeWrapper({
 		container : $('#main-canvas'),
-		paused : true,
+		paused : false,
 		hiddenCanvas : document.getElementById('hidden-canvas'),
 		size : {
 			width : $(document).width(),
@@ -35,6 +35,18 @@ $(document).ready(function()  {
 			},
 			'p' : function(three){
 				three.pause();
+			},
+			't' : function(three){
+				
+				var inc = three.grid.getRandomSlot();
+
+				three.inc.destination = new THREE.Vector3(
+					inc.threeX, inc.threeY, three.inc.getPosition().z
+				);
+			},
+			'y' : function(three){
+				console.log("Position ? ", three.inc.getPosition());
+				console.log(three.grid.getSlotByCoor(three.inc.getPosition().x ,three.inc.getPosition().y ));
 			},
 			'c' : function(three){
 

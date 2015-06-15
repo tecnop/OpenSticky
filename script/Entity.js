@@ -7,7 +7,7 @@ var Entity = {
 		this.randomInit(data);
 	},
 	squared : function(data){
-		this.randomInit(data);
+		this.init(data);
 	},
 	fromCode : function(data){
 		this.randomInit(data);
@@ -168,10 +168,14 @@ Entity.random.prototype = {
 			a : me.color.a || 1.0
 		};
 	},
-	add : function(vector) {
-		this.object.position.x += vector.x;
-		this.object.position.y += vector.y;
-		this.object.position.z += vector.z;
+	getPosition : function(){
+		return this.object.position;
+	},
+	setPosition : function(vec){
+		this.object.position = vec;
+	},
+	add : function(vec) {
+		this.object.position.add(vec);
 	},
 	evaluate : function(three){
 		return this.color.comparate( three.getSquareColor(this, {width : this.size.width, height : this.size.height}) );
@@ -187,13 +191,103 @@ Entity.fromCode.prototype = Entity.random.prototype;
 Entity.squared.prototype = {
 
 	init : function(data){
+		var me = this;
+
+		this.depth = data.depth;
 		this.squareWidth = data.squareWidth;
 		this.squareHeight = data.squareHeight;
 
-		this.matrix = data.matrix;
-	},
-	buildMeshes : function(data){
+		this.speed = data.speed;
 
+		this.matrix = data.matrix;
+
+		this.childs = [];
+		this.head = null;
+
+		this.actions = {
+			continuous : []
+		}
+
+		this.materials = {
+			default : new THREE.MeshLambertMaterial({
+				color: data.color
+			}),
+		}
+		this.materials.default.transparent = data.opacity ? true : false;
+		this.materials.default.opacity = data.opacity || 1.0;
+
+		this.buildSquares(this.matrix.intMatrix, this.matrix.col, this.matrix.row);
+
+		/*this.actions.continuous.push(function(three) {
+			for (var i = 0, len = me.childs.length; i < len; ++i){
+				me.childs[i].object.rotation.z += 0.02;
+			}
+		});*/
+
+		this.head = this.childs[0];
+
+		this.object = this.head;
+
+	},
+	/* matrix size must be the exact matrix size (ex : 16 for 4*4 matrix) */
+	buildSquares : function(intMatrix, col, row){
+		
+		var currX = 0,
+			currY = 0,
+			currCol = 0;
+
+		for (var i = 0; i < row * col; ++i){
+			
+			/*console.log(" LOGICAL AND : "  +  (intMatrix & Math.pow(2, i)) );*/
+
+			if ( (intMatrix & Math.pow(2, i)) != 0){
+				/*console.log(" MATCH "  + i + " ? currX : " + currX + "; currY : " + currY);*/
+
+				var vec =  new THREE.Vector3(currX,currY,0);
+
+				this.childs.push(new EntitySquare({
+					owner : this,
+					material : this.materials.default,
+					width : this.squareWidth,
+					height : this.squareHeight,
+					depth : this.depth,
+					position : new THREE.Vector3(
+						currX,
+						currY,
+						0
+					),
+				}));
+			}
+
+			currX += this.squareHeight;
+
+			if (++currCol >= col){
+				currX = 0;
+				currY += this.squareWidth;
+				currCol = 0;
+			}
+		}
+	},
+	pushIntoScene : function(scene){
+		for (var i = 0, len = this.childs.length; i < len; ++i){
+			scene.add(this.childs[i].object);
+		}
+	},
+	add : function(vector){
+		for (var i = 0, len = this.childs.length; i < len; ++i){
+			this.childs[i].add(vector);
+		}
+	},
+	getPosition : function(){
+		return this.head.object.position;
+	},
+	setPosition : function(vector){
+		for (var i = 0, len = this.childs.length; i < len; ++i){
+			this.childs[i].object.position = vector;
+		}
+	},
+	onDestinationReach : function(three){
+		
 	}
 }
 
@@ -205,15 +299,30 @@ var EntitySquare = function(data){
 EntitySquare.prototype = {
 	init : function(data){
 		
-		this.isHead = data.isHead;
+		this.owner = data.owner;
 
+		this.object = new THREE.Mesh(
+			new THREE.BoxGeometry(data.width, data.height, data.depth), 
+			data.material
+		);
+
+		
+
+		this.object.position.x = data.position.x;
+		this.object.position.y = data.position.y;
+		this.object.position.z = data.position.z;
+		//console.log("Pos :: (" + this.object.position.x + ", " + this.object.position.y + ", " + this.object.position.z +")");
+
+	},
+	add : function(vector){
+		this.object.position.add(vector);
 	}
 }
 
 var EntityFactory = {
 
 	getRandomSquaredEntity : function (data) {
-
+		//THREE.Color(Math.random(),Math.random(), Math.random()).getHex()
 	}
 
 }

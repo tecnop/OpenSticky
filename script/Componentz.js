@@ -72,7 +72,6 @@ var Componentz = {
 			if(key === 'injectStyles')
 				return;
 
-			console.log("k : ", key , " this : ", this);
 
 			var inc = this[key];
 			
@@ -98,7 +97,6 @@ Componentz.DragAndDrod.constructor.prototype = {
 	],*/
 	inject : function(data, options) {
 		var me = this;
-		console.log("me : ", me);
 /*		me.styles = me.buildStyles({
 			inject : true,
 		});*/
@@ -211,7 +209,7 @@ Componentz.DragAndDrod.constructor.prototype = {
 				var reader = new FileReader();
 
 	            reader.onload = function(e) {
-	            	console.log(e);
+	
 	       
 
 	            	me.loadedFile = {
