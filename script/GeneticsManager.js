@@ -49,7 +49,7 @@ GeneticsManager.prototype = {
 			me.remove(toRemFromSelection[i]);
 		}
 	},
-	evaluation : function(){
+	squareEvaluation : function(){
 		var me = this,
 			
 			toRemFromSelection = [];

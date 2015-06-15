@@ -193,6 +193,8 @@ Entity.squared.prototype = {
 	init : function(data){
 		var me = this;
 
+		this.key = "entity" + (++Entity.entityCount);
+
 		this.depth = data.depth;
 		this.squareWidth = data.squareWidth;
 		this.squareHeight = data.squareHeight;
@@ -287,7 +289,7 @@ Entity.squared.prototype = {
 		}
 	},
 	onDestinationReach : function(three){
-		
+		three.grid.addSquaredEntityByCoor(this);
 	}
 }
 

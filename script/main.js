@@ -40,9 +40,14 @@ $(document).ready(function()  {
 				
 				var inc = three.grid.getRandomSlot();
 
+				three.grid.removeSquaredEntityByCoor(three.inc);
+				
 				three.inc.destination = new THREE.Vector3(
 					inc.threeX, inc.threeY, three.inc.getPosition().z
 				);
+
+
+
 			},
 			'y' : function(three){
 				console.log("Position ? ", three.inc.getPosition());
