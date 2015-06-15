@@ -153,7 +153,7 @@ Componentz.DragAndDrod.constructor.prototype = {
 		me.container = jQuery('<div class="dragndrop-container">');
 		me.message = jQuery('<div class="dragndrop-message">');
 
-		me.message.html("Drop a file");
+		me.message.html("Drop an image");
 
 		me.container.append(me.message);
 

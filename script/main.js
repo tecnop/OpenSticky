@@ -97,7 +97,7 @@ $(document).ready(function()  {
 						console.log("No data transfert : ", e.originalEvent);
 						return false;
 					}
-
+					console.log("Drop > ", e.originalEvent);
 					if(e.originalEvent.dataTransfer.files.length) {
 
 

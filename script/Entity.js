@@ -6,6 +6,9 @@ var Entity = {
 	random : function(data){
 		this.randomInit(data);
 	},
+	squared : function(data){
+		this.randomInit(data);
+	},
 	fromCode : function(data){
 		this.randomInit(data);
 	}
@@ -180,3 +183,37 @@ Entity.random.prototype = {
 }
 
 Entity.fromCode.prototype = Entity.random.prototype;
+
+Entity.squared.prototype = {
+
+	init : function(data){
+		this.squareWidth = data.squareWidth;
+		this.squareHeight = data.squareHeight;
+
+		this.matrix = data.matrix;
+	},
+	buildMeshes : function(data){
+
+	}
+}
+
+
+var EntitySquare = function(data){
+	this.init(data);
+}
+
+EntitySquare.prototype = {
+	init : function(data){
+		
+		this.isHead = data.isHead;
+
+	}
+}
+
+var EntityFactory = {
+
+	getRandomSquaredEntity : function (data) {
+
+	}
+
+}

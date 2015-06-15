@@ -245,38 +245,38 @@ ThreeWrapper.prototype  = {
 		}
 
 		me.imagePlaneWrapper.hiddenCanvas.loadImage(data.path, function (hiddenCanvas){
+
 			// Parmas : url , mapping , onLoad, onError
-			var srcImg = THREE.ImageUtils.loadTexture(data.path);
+			var srcImg = THREE.ImageUtils.loadTexture(data.path, null, 
+				function(onLoad){
+					console.log("onLoad : ", onLoad);
+				},
+				function(onError){
+					console.log("onError : ", onError);
+				}
+			);
 			srcImg.src = data.path;
+			//srcImg.image = hiddenCanvas.img;
 
 			srcImg.crossOrigin = "anonymous";
 			srcImg.minFilter = THREE.LinearFilter;
-
+			
 			var imgTex = new THREE.MeshBasicMaterial({
 				map:srcImg,
-				
 			});
-			
 
-			var image = new Image();
-			image.onload = function () {
-			    texture.image = image;
-			    texture.needsUpdate = true;
-			};
-			image.src = dataURI;
+   			imgTex.needsUpdate = true;
+			imgTex.minFilter = THREE.LinearFilter;
 
-
-			imgTex.map.needsUpdate = true; 
-
-			
-
-			// plane
+			// PlaneGeometry - PlaneBufferGeometry
 			me.imagePlaneWrapper.imagePlane = new THREE.Mesh(
-				new THREE.PlaneGeometry(hiddenCanvas.img.width, hiddenCanvas.img.height),
+				new THREE.PlaneBufferGeometry(hiddenCanvas.img.width, hiddenCanvas.img.height),
 				imgTex
 			);
 
 			me.imagePlaneWrapper.rect = {
+				width : hiddenCanvas.img.width,
+				height :  hiddenCanvas.img.height,
 				topLeft : {
 					x : -( parseInt(hiddenCanvas.img.width/2) ),
 					y : ( parseInt(hiddenCanvas.img.height/2) ),
@@ -292,6 +292,7 @@ ThreeWrapper.prototype  = {
 
 			if(callback)
 				callback();
+			
 		});
 	},
 	// TO USE
