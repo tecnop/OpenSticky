@@ -49,71 +49,184 @@ GeneticsManager.prototype = {
 			me.remove(toRemFromSelection[i]);
 		}
 	},
-	squareEvaluation : function(){
-		var me = this,
+	squareEvaluation : function(three){
+		var toKill = three.grid.entitiesCases - three.grid.expectedCases,
+			res = [[],[],[]],
+			incRes =  [[],[],[]];
+
+
+		var curr = three.grid.getEntitiesInRect(0, three.grid.maxWidthIndex, 0 , three.grid.maxHeightIndex);
+
+		if (!curr) {
+			return;
+		}
+
+		for (var k = 0,len = curr.length; k < len; ++k) {
+
+			var fitness = curr[k].calculateFitness(three);
+
 			
-			toRemFromSelection = [];
-
-		
-		
-		
-
-
-		var cpt = 0;
-		for(var k in me.selection) {
-			var currColorFactor = me.selection[k].evaluate(me.threeWrapper);
-
-			if (currColorFactor <= 0.1){
-				me.threeWrapper.entitiesManager.remove(me.selection[k]);
+			if(fitness.percent >= 100) {
+				res[0].push(curr[k]);
 			}
-			else if (currColorFactor <= 0.25) {
+			else if (fitness.percent >= 40) {
+				res[1].push(curr[k]);
+			}
+			else {
+				res[2].push(curr[k]);
+			}
+
+		}
+
+		// Some cool CROSSes
+		for (var i = 0, max = parseInt(res[0].length / 2), last = res[0].length -1; i < max; ++i, --last){
+			var inc = res[0][i].randomCross(res[0][last]),
+				postion = new THREE.Vector3(
+					(res[0][i].getPosition().x + res[0][last].getPosition().x) /2 ,
+					(res[0][i].getPosition().y + res[0][last].getPosition().y) /2 ,
+					res[0][i].getPosition().z //(res[1][i].getPosition().z + res[1][last].getPosition().z) /2
+				);
+
+			three.grid.clipCoor(postion);
+
+			inc.add(postion);
+
+			var fitness = inc.calculateFitness(three);
+
+			if (fitness.percent >= 100) {
+				incRes[0].push(inc);
+			}
+			else if (fitness.percent >= 40) {
+				incRes[1].push(inc);
+			}
+			else {
+				incRes[2].push(inc);
+			}
+		}
+		// Some mid CROSSes
+		for (var i = 0, max = parseInt(res[1].length / 2), last = res[1].length -1; i < max; ++i, --last){
+			var inc = res[1][i].randomCross(res[1][last]),
+				postion = new THREE.Vector3(
+					(res[1][i].getPosition().x + res[1][last].getPosition().x) /2 ,
+					(res[1][i].getPosition().y + res[1][last].getPosition().y) /2 ,
+					res[1][i].getPosition().z //(res[1][i].getPosition().z + res[1][last].getPosition().z) /2
+				);
+
+			three.grid.clipCoor(postion);
+
+			inc.add(postion);
+
+			var fitness = inc.calculateFitness(three);
+
+			if (fitness.percent >= 100) {
+				incRes[0].push(inc);
+			}
+			else if (fitness.percent >= 40) {
+				incRes[1].push(inc);
+			}
+			else {
+				incRes[2].push(inc);
+			}
+		}
+		
+
+		var actions = {
+			add : [],
+			remove : [],
+			validate : [],
+			move : []
+		};
+
+		var expectedWithBonus = three.grid.expectedCases + ( toKill > 0 ? parseInt(toKill / 3) : parseInt(three.grid.expectedCases / 10) );
+
+		var expectedFromRes = parseInt(expectedWithBonus * 1.6) - expectedWithBonus;
+
+		var expectedFromInc = expectedWithBonus - expectedFromRes;
+
+		var curr = three.grid.entitiesCases;
+
+		var validatedLength = 0;
+
+		var checkingRes = true;
+
+		var currIncLength = 0,
+			currResLength = 0;
+
+		console.log("# Image Cases : " + three.grid.expectedCases);
+		console.log("# Current Cases : " + three.grid.entitiesCases);
+		console.log("# ToKill : " + toKill);
+
+		console.log("# expectedWithBonus (expected + toKill / 3) : " + expectedWithBonus);
+		
+
+		console.log("# expected (res / inc) : (" + expectedFromRes + " + " +  expectedFromInc + ") = " + (expectedFromRes + expectedFromInc));
+
+		// Adding Inc
+		while (currIncLength <= expectedFromInc) {
+
+			if (incRes[2].length > 0) {
+				choice =  incRes[2].pop();
+
 				
-				if(cpt%2 == 0) {
-					me.threeWrapper.entitiesManager.remove(me.selection[k]);
-				}
-				else {
-					me.selection[k].destination = me.threeWrapper.getRandomPositionInImagePlane(
-						me.selection[k].object.position.z
-					);
-					toRemFromSelection.push(me.selection[k]);
-					
-				}
-				
+
+				actions.validate.push(choice);
 			}
-			else if (currColorFactor <= 0.5) {
-				me.selection[k].destination = me.threeWrapper.getRandomPositionInImagePlane(
-					me.selection[k].object.position.z
-				);
-				toRemFromSelection.push(me.selection[k]);
+			else if (incRes[1].length > 0){
+				choice =  incRes[1].pop();
 			}
-			else if (currColorFactor <= 0.75) {
-				me.selection[k].destination = me.threeWrapper.getRandomPositionInImagePlane(
-					me.selection[k].object.position.z
-				);
-				toRemFromSelection.push(me.selection[k]);
+			else if (incRes[0].length > 0){
+				choice =  incRes[0].pop();
 			}
-			else  {
-				me.selection[k].destination = me.threeWrapper.getRandomPositionInImagePlane(
-					me.selection[k].object.position.z
-				);
-				toRemFromSelection.push(me.selection[k]);
+			else {
+				break;
 			}
 
-			++cpt;
-		}
-		
-		var populationFitness = me.threeWrapper.calculatePopulationFitness(),
-			toKill = populationFitness < 0 ? Math.abs(populationFitness) : 0;
-
-		console.log("populationFitness === " + populationFitness);
-
-		if (populationFitness > 0){
-			me.threeWrapper.entitiesManager.add(new Entity.random({cube:true}));
+			if(choice){
+				currIncLength += choice.childs.length;
+				actions.add.push(choice);
+			}
 		}
 
-		for(var i = 0; i < toRemFromSelection.length; ++i){
-			me.remove(toRemFromSelection[i]);
+		// Adding Res
+		currResLength += currIncLength;
+
+		while (currResLength <= expectedWithBonus) {
+
+			if (res[2].length > 0) {
+				choice =  res[2].pop();
+			}
+			else if (res[1].length > 0){
+				choice =  res[1].pop();
+				actions.move.push(choice);
+			}
+			else if (res[0].length > 0){
+				choice =  res[0].pop();
+			}
+			else {
+				break;
+			}
+
+			if(choice){
+				currResLength += choice.childs.length;
+
+				//actions.add.push(choice);
+			}
 		}
+
+		// remove others
+		for (var i = 0, len = res[0].length; i < len; ++i){
+			actions.remove.push(res[0][i]);
+		}
+
+		for (var i = 0, len = res[1].length; i < len; ++i){
+			actions.remove.push(res[1][i]);
+		}
+
+		for (var i = 0, len = res[2].length; i < len; ++i){
+			actions.remove.push(res[2][i]);
+		}
+
+		three.executeActions(actions);
 
 	},
 	evaluate : function(data){

@@ -1,4 +1,6 @@
 var Datas = {
+	special1 : 31951, // Square
+	special2 : 4080, // anti Square
 	cubesByInt : [
 		1,
 		2,

@@ -19,8 +19,8 @@ EntitiesManager.prototype = {
 			return;
 
 		--this.count;
-		this.threeWrapper.scenes.main.remove(entity.object);
-		this.threeWrapper.geneticsManager.remove(entity);
+		//this.threeWrapper.scenes.main.remove(entity.object);
+		//this.threeWrapper.geneticsManager.remove(entity);
 		delete this.entities[entity.key];
 	},
 	calculateCount : function(){

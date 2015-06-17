@@ -24,9 +24,9 @@ var Grid = function (data){
 */
 Grid.prototype = {
 	BASE_VECTOR : new THREE.Vector3(0,0,0),
-	LOG : true,
+	LOG : false,
 	init : function(data){
-		console.log(data);
+
 		this.step = data.step;
 		this.width = data.imagePlaneWrapper.rect.width;
 		this.height = data.imagePlaneWrapper.rect.height;
@@ -44,12 +44,14 @@ Grid.prototype = {
 		this.maxWidth = this.width - (this.width % this.step);
 		this.maxHeight = this.height - (this.height % this.step);
 
-		this.maxWidthIndex = w;
-		this.maxHeightIndex = h;
+		this.maxWidthIndex = w -1;
+		this.maxHeightIndex = h -1;
 
 		//console.log(" w : " + w + " h : " + h + " step : " + this.step);
 
 		//var lineMsg = "";
+		this.expectedCases = 0;
+		this.entitiesCases = 0;
 
 		for (var i = 0; i < w; ++i) {
 			this.grid.push([]);
@@ -62,9 +64,11 @@ Grid.prototype = {
 					threeY : currY,
 				}));
 
+
 				//lineMsg += "# x : " + currX + ", y : " + currY + " #";
 
 				currX += this.step;
+				++this.expectedCases;
 			}
 
 			//lineMsg += "]\n" 
@@ -75,6 +79,10 @@ Grid.prototype = {
 		//console.log(lineMsg);
 
 	},
+	clipCoor : function (vector){
+		vector.x = vector.x - (vector.x % this.step);
+		vector.y = vector.y - (vector.y % this.step);
+	},
 	coorToIndex : function(x, y){
 		x = Math.abs( (x - (x % this.step)) + this.startX );
 		y = Math.abs( (y - (y % this.step)) + this.startY );
@@ -84,18 +92,21 @@ Grid.prototype = {
 	},
 	/* Actions */
 	// Add
-	addSquaredEntityByCoor : function(entity){
+	addSquaredEntityByCoor : function(entity, definitive){
 		var coor = this.coorToIndex(entity.head.object.position.x, entity.head.object.position.y);
 
-		this.addSquaredEntityByIndex(entity, coor.i, coor.j);
+		this.addSquaredEntityByIndex(entity, coor.i, coor.j,definitive);
 	},
-	addSquaredEntityByIndex : function(entity, i , j){
+	addSquaredEntityByIndex : function(entity, i , j, definitive){
 		if ( i < 0 || i > this.maxWidthIndex ||
 			 j < 0 || j > this.maxHeightIndex) {
 			if(LOG)
 				console.warn("Cannot *add* entity. i : " + i + " j : " + j);
 			return;
 		}
+
+		if(definitive)
+			this.entitiesCases += entity.childs.length;
 
 		this.grid[i][j].addEntity(entity.head);
 
@@ -104,18 +115,21 @@ Grid.prototype = {
 		}*/
 	},
 	// Remove
-	removeSquaredEntityByCoor : function (entity){
+	removeSquaredEntityByCoor : function (entity, definitive){
 		var coor = this.coorToIndex(entity.head.object.position.x, entity.head.object.position.y);
 
-		this.removeSquaredEntityByIndex(entity, coor.i, coor.j);
+		this.removeSquaredEntityByIndex(entity, coor.i, coor.j, definitive);
 	},
-	removeSquaredEntityByIndex : function(entity, i , j ){
+	removeSquaredEntityByIndex : function(entity, i , j , definitive){
 		if ( i < 0 || i > this.maxWidthIndex ||
 			 j < 0 || j > this.maxHeightIndex) {
-			if(LOG)
+			if(this.LOG)
 				console.warn("Cannot *remove* entity. i : " + i + " j : " + j);
 			return;
 		}
+
+		if(definitive)
+			this.entitiesCases -= entity.childs.length;
 
 		this.grid[i][j].removeEntity(entity);
 	},
@@ -128,12 +142,60 @@ Grid.prototype = {
 	getSlotByIndex : function(i , j){
 		if ( i < 0 || i > this.maxWidthIndex ||
 			 j < 0 || j > this.maxHeightIndex) {
-			if(LOG)
+			if(this.LOG)
 				console.warn("Cannot *get* entity. i : " + i + " j : " + j);
 			return null;
 		}
 
 		return this.grid[i][j];
+	},
+	getHeadsInRect : function (sI, eI, sJ, eJ){
+		if ( sI < 0 || sI > this.maxWidthIndex ||
+			 eI < 0 || eI > this.maxWidthIndex ||
+			 sJ < 0 || sJ > this.maxHeightIndex  ||
+			 eJ < 0 || eJ > this.maxHeightIndex) {
+			if(this.LOG)
+				console.warn("Cannot *get* slots. start i : " + sI + " start j : " + sJ);
+			return null;
+		}
+
+		var res = [];
+
+		for (var i = sI; i < eI; ++i) {
+			for (var j = sJ; j < eJ; ++j) {
+
+				if(this.grid[i][j].entities.length > 0) {
+					for (var k = 0, len = this.grid[i][j].entities.length; k < len; ++k)
+						res.push(this.grid[i][j].entities[k]);
+				}
+			}
+		}
+		return res;
+
+	},
+	getEntitiesInRect : function (sI, eI, sJ, eJ){
+		if ( sI < 0 || sI > this.maxWidthIndex ||
+			 eI < 0 || eI > this.maxWidthIndex ||
+			 sJ < 0 || sJ > this.maxHeightIndex  ||
+			 eJ < 0 || eJ > this.maxHeightIndex) {
+			if(this.LOG)
+				console.warn("Cannot *get* slots. start i : " + sI + " start j : " + sJ);
+			return null;
+		}
+
+		var res = [];
+
+		for (var i = sI; i < eI; ++i) {
+			for (var j = sJ; j < eJ; ++j) {
+
+				if(this.grid[i][j].entities.length > 0) {
+					for (var k = 0, len = this.grid[i][j].entities.length; k < len; ++k)
+						res.push(this.grid[i][j].entities[k].owner);
+				}
+			}
+		}
+		return res;
+
 	},
 	// Random
 	getRandomSlot : function(){

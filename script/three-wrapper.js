@@ -4,15 +4,22 @@ var ThreeWrapper = function (data){
 ThreeWrapper.prototype  = {
 	// Camera attributes
 	MAX_Z : 5000,
-	Z_GAP : 300,
-	Z_STEP : 0.1,
 	VIEW_ANGLE : 45,
 	NEAR : 1,
 	FAR : 10000,
 	CAMERA_Z : 1000,
+	// Entity
+	count : 150,
+	Z_GAP : 300,
+	Z_STEP : 0.2,
+	MIN_SPEED : 25,
+	MAX_SPEED : 25,
+	MIN_DEPTH : 10,
+	MAX_DEPTH : 10,
+	//
+	startDelay : 2,
+	gridStep : 20,
 	paused : false,
-	count : 100,
-	gridStep : 100,
 	entitiesSpeedFactor : 1,
 	defaultImage : 'img/jap.jpg',
 	entitiesManager : null,
@@ -186,13 +193,14 @@ ThreeWrapper.prototype  = {
 		me.defineImagePlane({path : me.defaultImage}, function(){
 			//me.initEntities({count : me.count});
 
+			//*
 			me.grid = new Grid({
 				step : me.gridStep,
 				imagePlaneWrapper : me.imagePlaneWrapper
 			});
 
 			me.initSquaredEntities({count : me.count});
-
+			//*/
 			
 		});
 
@@ -216,7 +224,9 @@ ThreeWrapper.prototype  = {
 		}
 	},
 	initSquaredEntities : function(data){
+		var me = this;
 
+		/*
 		this.inc = new Entity.squared({
 			speed : 10,
 			depth : 5,
@@ -233,16 +243,98 @@ ThreeWrapper.prototype  = {
 		this.inc.pushIntoScene(this.scenes.main);
 		this.entitiesManager.add(this.inc);
 		this.grid.addSquaredEntityByCoor(this.inc);
-		/*1011111001111101 NAZII*/
+		// 1011111001111101 - 48765 - NAZII
+		//*/
 		
-		
-		
+		var fn = function(count) {
+			if(count <= 0)
+				return;
 
-		return;
-		for(var i = 0; i < data.count; ++i){
+			var inc = new Entity.squared({
+				speed : Math.floor(Math.random() * (me.MAX_SPEED - me.MIN_SPEED + 1)) + me.MIN_SPEED,
+				depth : Math.floor(Math.random() * (me.MAX_DEPTH - me.MIN_DEPTH + 1)) + me.MIN_DEPTH,
+				squareWidth : me.gridStep,
+				squareHeight : me.gridStep,
+				color : new THREE.Color(Math.random(),Math.random(),Math.random()), 
+				matrix : {
+					col : 4,
+					row : 4,
+					intMatrix : Datas.cubesByInt[Math.floor(Math.random() * Datas.cubesByInt.length)],
+				}
+			});
+
+
+			var slot = me.grid.getRandomSlot();
 			
-			//Datas.cubesByInt.len
+			me.grid.addSquaredEntityByCoor(inc, true);
+
+			inc.pushIntoScene(me.scenes.main);
+			inc.destination = new THREE.Vector3(slot.threeX, slot.threeY, me.Z_GAP + (++me.Z_STEP));
+			me.entitiesManager.add(inc);
+			
+
+			setTimeout(function(){
+				fn(--count);
+			}, me.startDelay);
 		}
+
+		fn(data.count);
+	},
+	executeActions : function (actions){
+		// # Remove
+		for (var i = 0, len = actions.remove.length; i < len; ++i) {
+			
+			actions.remove[i].removeFromScene(this.scenes.main);
+
+			this.entitiesManager.remove(actions.remove[i]);
+
+			this.grid.removeSquaredEntityByCoor(actions.remove[i], true);
+
+			console.log("rem");
+
+		}
+		// # Add
+		for (var i = 0, len = actions.add.length; i < len; ++i) {
+			
+			actions.add[i].pushIntoScene(this.scenes.main);
+
+			this.entitiesManager.add(actions.add[i]);
+
+			this.grid.addSquaredEntityByCoor(actions.add[i], true);
+
+			console.log("add");
+
+		}
+		// # Move
+		for (var i = 0, len = actions.move.length; i < len; ++i) {
+			
+			this.grid.removeSquaredEntityByCoor(actions.move[i]);
+
+			var inc = this.grid.getRandomSlot();
+			
+			actions.move[i].destination = new THREE.Vector3(
+				inc.threeX, inc.threeY, actions.move[i].getPosition().z
+			);
+
+			console.log("move");
+		}
+		// # Validate
+		for (var i = 0, len = actions.validate.length; i < len; ++i) {
+			
+			this.grid.removeSquaredEntityByCoor(actions.validate[i]);
+			
+			actions.validate[i].oldPosition = choice.getPosition();
+			actions.validate[i].onValidtion = true;
+
+			actions.validate[i].destination = new THREE.Vector3(
+				actions.validate[i].getPosition().x, actions.validate[i].getPosition().y, 0
+			);
+
+			
+
+			console.log("move");
+		}
+
 	},
 	getRandomPositionInImagePlane : function(z){
 		var rdmX = Math.floor((Math.random()*(this.imagePlaneWrapper.rect.bottomRight.x*2))),
@@ -290,10 +382,10 @@ ThreeWrapper.prototype  = {
 
 			// Parmas : url , mapping , onLoad, onError
 			var srcImg = THREE.ImageUtils.loadTexture(data.path, null, 
-				function(onLoad){
+				function(onLoad) {
 					console.log("onLoad : ", onLoad);
 				},
-				function(onError){
+				function(onError) {
 					console.log("onError : ", onError);
 				}
 			);

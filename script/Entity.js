@@ -85,8 +85,14 @@ Entity.random.prototype = {
 
 		//MeshBasicMaterial - MeshLambertMaterial - MeshPhongMaterial
 		me.material = new THREE.MeshLambertMaterial({
-			color: me.color.toHex(false), 
+			color: me.color.toHex(false),
 		});
+
+		/*me.material = new THREE.ShaderMaterial( {
+		    vertexShader: document.getElementById( 'vertexShader1' ).textContent,
+		    fragmentShader: document.getElementById( 'fragmentShader1' ).textContent
+		});*/
+
 		//me.material.emissive = new THREE.Color(0.5,0.5,0.5);
 		
 		me.material.transparent = true;
@@ -210,10 +216,16 @@ Entity.squared.prototype = {
 			continuous : []
 		}
 
+		this.color = data.color;
+
 		this.materials = {
 			default : new THREE.MeshLambertMaterial({
 				color: data.color
 			}),
+			basic : new THREE.MeshBasicMaterial({
+				color : data.color
+			})
+
 		}
 		this.materials.default.transparent = data.opacity ? true : false;
 		this.materials.default.opacity = data.opacity || 1.0;
@@ -249,7 +261,7 @@ Entity.squared.prototype = {
 
 				this.childs.push(new EntitySquare({
 					owner : this,
-					material : this.materials.default,
+					material : this.materials.basic,
 					width : this.squareWidth,
 					height : this.squareHeight,
 					depth : this.depth,
@@ -275,6 +287,11 @@ Entity.squared.prototype = {
 			scene.add(this.childs[i].object);
 		}
 	},
+	removeFromScene : function (scene){
+		for (var i = 0, len = this.childs.length; i < len; ++i){
+			scene.remove(this.childs[i].object);
+		}
+	},
 	add : function(vector){
 		for (var i = 0, len = this.childs.length; i < len; ++i){
 			this.childs[i].add(vector);
@@ -283,13 +300,120 @@ Entity.squared.prototype = {
 	getPosition : function(){
 		return this.head.object.position;
 	},
+	//*
 	setPosition : function(vector){
 		for (var i = 0, len = this.childs.length; i < len; ++i){
 			this.childs[i].object.position = vector;
 		}
 	},
+	//*/
+	calculateFitness : function(three){
+		var res = 0;
+
+		for (var i = 0, len = this.childs.length; i < len; ++i){
+			var slot = three.grid.getSlotByCoor(this.childs[i].object.position.x, this.childs[i].object.position.y);
+
+			if(slot && slot.state == 0)
+				++res;
+		}
+
+		return {
+			match : res,
+			length : this.childs.length,
+			percent : parseInt(res * 100 / this.childs.length)
+		};
+	},
+	/* Crosses */
+	randomCross : function (entity){
+		var rdm = Math.floor(Math.random() * 100);
+
+		if (rdm <= 25){
+			return this.crossAND(entity);
+		}
+		else if (rdm <= 50){
+			return this.crossXOR(entity);
+		}
+		else {
+			return this.crossOR(entity);
+		}
+	},
+	crossAND : function (entity) {
+
+		return new Entity.squared({
+			speed : parseInt( (this.speed + entity.speed) / 2),
+			depth : parseInt( (this.depth + entity.depth) / 2),
+			squareWidth : this.gridStep,
+			squareHeight : this.gridStep,
+			color : new THREE.Color(
+				(this.color.r + entity.color.r ) / 2,
+				(this.color.g + entity.color.g ) / 2,
+				(this.color.b + entity.color.b ) / 2,
+				(this.color.a + entity.color.a ) / 2),
+			matrix : {
+				col : this.matrix.col,
+				row : this.matrix.row,
+				intMatrix : this.matrix.intMatrix & entity.matrix.intMatrix,
+			}
+		});
+	},
+	crossOR : function (entity) {
+
+		return new Entity.squared({
+			speed : parseInt( (this.speed + entity.speed) / 2),
+			depth : parseInt( (this.depth + entity.depth) / 2),
+			squareWidth : this.gridStep,
+			squareHeight : this.gridStep,
+			color : new THREE.Color(
+				(this.color.r + entity.color.r ) / 2,
+				(this.color.g + entity.color.g ) / 2,
+				(this.color.b + entity.color.b ) / 2,
+				(this.color.a + entity.color.a ) / 2),
+			matrix : {
+				col : this.matrix.col,
+				row : this.matrix.row,
+				intMatrix : this.matrix.intMatrix | entity.matrix.intMatrix,
+			}
+		});
+	},
+	crossXOR : function (entity) {
+
+		return new Entity.squared({
+			speed : parseInt( (this.speed + entity.speed) / 2),
+			depth : parseInt( (this.depth + entity.depth) / 2),
+			squareWidth : this.gridStep,
+			squareHeight : this.gridStep,
+			color : new THREE.Color(
+				(this.color.r + entity.color.r ) / 2,
+				(this.color.g + entity.color.g ) / 2,
+				(this.color.b + entity.color.b ) / 2,
+				(this.color.a + entity.color.a ) / 2),
+			matrix : {
+				col : this.matrix.col,
+				row : this.matrix.row,
+				intMatrix : this.matrix.intMatrix ^ entity.matrix.intMatrix,
+			}
+		});
+	},
+	/* Mutates */
+	mutateSpecial2 : function (){
+		
+		return new Entity.squared({
+			speed : this.speed,
+			depth : this.depth,
+			squareWidth : this.gridStep,
+			squareHeight : this.gridStep,
+			color : this.color,
+			matrix : {
+				col : this.matrix.col,
+				row : this.matrix.row,
+				intMatrix : this.matrix.intMatrix & Datas.special2,
+			}
+		});
+
+		
+	},
 	onDestinationReach : function(three){
-		three.grid.addSquaredEntityByCoor(this);
+		three.grid.addSquaredEntityByCoor(this, false);
 	}
 }
 

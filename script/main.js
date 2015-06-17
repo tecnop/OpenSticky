@@ -21,22 +21,22 @@ $(document).ready(function()  {
 	var inputs = new InputsListeners({
 		context : threeWrapper,
 		keys : {
-			plus : function(three){
+			plus : function(three) {
 				three.speedUp() ;
 			},
-			minus : function(three){
+			minus : function(three) {
 				three.slowDown() ;
 			},
-			'h' : function(three){
+			'h' : function(three) {
 				three.imagePlaneWrapper.imagePlane.visible = !three.imagePlaneWrapper.imagePlane.visible;
 			},
-			'e' : function(three){
+			'e' : function(three) {
 				three.evaluateMode = !three.evaluateMode;
 			},
-			'p' : function(three){
+			'p' : function(three) {
 				three.pause();
 			},
-			't' : function(three){
+			't' : function(three) {
 				
 				var inc = three.grid.getRandomSlot();
 
@@ -49,11 +49,14 @@ $(document).ready(function()  {
 
 
 			},
-			'y' : function(three){
+			'y' : function(three) {
 				console.log("Position ? ", three.inc.getPosition());
 				console.log(three.grid.getSlotByCoor(three.inc.getPosition().x ,three.inc.getPosition().y ));
 			},
-			'c' : function(three){
+			'g' : function(three) {
+				three.geneticsManager.squareEvaluation(three);
+			},
+			'c' : function(three) {
 
 				for(var k in three.entitiesManager.entities){
 
@@ -68,7 +71,7 @@ $(document).ready(function()  {
 				}
 				
 			},
-			'm' : function(three){
+			'm' : function(three) {
 
 				for(var k in three.entitiesManager.entities){
 					three.entitiesManager.entities[k].destination = three.getRandomPositionInImagePlane(
