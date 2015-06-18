@@ -52,8 +52,8 @@ $(document).ready(function()  {
 			},
 			't' : function(three) {
 				
-				three.initSquaredEntities({count : 1});
-
+				//three.initSquaredEntities({count : 1});
+				three.initEntities({count : 10});
 
 			},
 			'y' : function(three) {

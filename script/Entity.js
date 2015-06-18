@@ -24,15 +24,16 @@ var Entity = {
 */
 Entity.random.prototype = {
 	MAX_Z : 3000,
-	Z_STEP : 0.1,
-	MIN_WIDTH : 2,
-	MAX_WIDTH : 32,
-	MIN_HEIGHT : 2,
-	MAX_HEIGHT : 32,
+	MIN_Z_STEP : 0.3,
+	MAX_Z_STEP : 0.5,
+	MIN_WIDTH : 16,
+	MAX_WIDTH : 16,
+	MIN_HEIGHT : 16,
+	MAX_HEIGHT : 16,
 	MIN_SPEED : 1,
 	MAX_SPEED : 25,
-	MIN_DEPTH : 1,
-	MAX_DEPTH : 5,
+	MIN_DEPTH : 300,
+	MAX_DEPTH : 300,
 	MIN_OPACITY : 0.5,
 	MAX_OPACITY : 0.8,
 	/*
@@ -62,6 +63,8 @@ Entity.random.prototype = {
 		me.key = "entity" + (++Entity.entityCount);
 
 		me.rorationFactor = Math.floor(Math.random()* 100);
+		me.opacityFactor = Math.floor(Math.random()* 100);
+
 
 		me.destination = null;
 
@@ -90,16 +93,16 @@ Entity.random.prototype = {
 		var incCol = new THREE.Color(Math.random(), Math.random(), Math.random());
 
 		//MeshBasicMaterial - MeshLambertMaterial - MeshPhongMaterial
-		/*me.material = new THREE.MeshLambertMaterial({
+		me.material = new THREE.MeshBasicMaterial({
 			color: me.color.toHex(false),
-		});*/
+		});
 		
-		me.material = new THREE.ShaderMaterial( {
+		/*me.material = new THREE.ShaderMaterial( {
 		    vertexShader:  document.getElementById('vertexShader1'),
 		    fragmentShader: document.getElementById('fragmentShader1')
 		});
-
-		//me.material.emissive = new THREE.Color(0.5,0.5,0.5);
+*/
+		me.material.emissive = new THREE.Color(0,0,0);
 		
 		me.material.transparent = true;
 		me.material.opacity = Math.floor(Math.random() * (me.MAX_OPACITY - me.MIN_OPACITY + 1)) + me.MIN_OPACITY;
@@ -117,6 +120,98 @@ Entity.random.prototype = {
 			return three.getSquareColor(me, {width : me.size.width, height : me.size.height});
 		};
 
+		me.up = true;
+
+		if (me.opacityFactor < 15) { 
+			me.actions.continuous.push(function(three) {
+				if (me.up) {
+					me.material.opacity += 0.01;
+				}
+				else{
+					me.material.opacity -= 0.01;
+				}
+
+				if(me.material.opacity >= 0.99){
+					me.up = false;
+				}
+				else if (me.material.opacity <= 0.10){
+					me.up = true;
+				}
+			});
+		}
+		else if (me.opacityFactor < 35) { 
+			me.actions.continuous.push(function(three) {
+				if (me.up) {
+					me.material.opacity += 0.02;
+				}
+				else{
+					me.material.opacity -= 0.01;
+				}
+
+				if(me.material.opacity >= 0.99){
+					me.up = false;
+				}
+				else if (me.material.opacity <= 0.30){
+					me.up = true;
+				}
+			});
+		}
+		else if (me.opacityFactor < 60) {
+			me.actions.continuous.push(function(three) {
+				if (me.up) {
+					me.material.opacity += 0.02;
+				}
+				else{
+					me.material.opacity -= 0.02;
+				}
+
+				if(me.material.opacity >= 0.80){
+					me.up = false;
+				}
+				else if (me.material.opacity <= 0.15){
+					me.up = true;
+				}
+			});
+		}
+		else if (me.opacityFactor < 80){
+			me.actions.continuous.push(function(three) {
+				if (me.up) {
+					me.material.opacity += 0.015;
+				}
+				else{
+					me.material.opacity -= 0.005;
+				}
+
+				if(me.material.opacity >= 0.99){
+					me.up = false;
+				}
+				else if (me.material.opacity <= 0.05){
+					me.up = true;
+				}
+			});
+		}
+		else if (me.opacityFactor < 100){
+			me.actions.continuous.push(function(three) {
+				if (me.up) {
+					me.material.opacity += 0.03;
+				}
+				else{
+					me.material.opacity -= 0.03;
+				}
+
+				if(me.material.opacity >= 0.99){
+					me.up = false;
+				}
+				else if (me.material.opacity <= 0.05){
+					me.up = true;
+				}
+			});
+		}
+
+
+
+
+
 		if(me.rorationFactor < 10){
 			me.actions.continuous.push(function(three) {
 				me.object.rotation.z += 0.03;
@@ -127,12 +222,12 @@ Entity.random.prototype = {
 				me.object.rotation.z -= 0.03;
 			});
 		}
-		else if (me.rorationFactor < 30){
+		else if (me.rorationFactor < 35){
 			me.actions.continuous.push(function(three) {
 				me.object.rotation.z += 0.01;
 			});
 		}
-		else if (me.rorationFactor < 40){
+		else if (me.rorationFactor < 50){
 			me.actions.continuous.push(function(three) {
 				me.object.rotation.z -= 0.01;
 			});
@@ -176,7 +271,9 @@ Entity.random.prototype = {
 		return geometry;
 	},
 	getNextZ : function(){
-		Entity.currZ = Entity.currZ <= this.MAX_Z ? Entity.currZ + this.Z_STEP : this.MAX_Z;
+		var nextZ = Math.floor(Math.random() * (this.MAX_Z_STEP - this.MIN_Z_STEP + 1)) + this.MIN_Z_STEP;
+
+		Entity.currZ = Entity.currZ <= this.MAX_Z ? Entity.currZ + nextZ : this.MAX_Z;
 		return Entity.currZ;
 	},
 	setColor : function(color){

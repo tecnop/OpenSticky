@@ -2,6 +2,7 @@ var ThreeWrapper = function (data){
 	this.inject(data);
 }
 ThreeWrapper.prototype  = {
+	SQUARE_ENTITY_MODE : false,
 	// Camera attributes
 	MAX_Z : 5000,
 	VIEW_ANGLE : 45,
@@ -9,7 +10,7 @@ ThreeWrapper.prototype  = {
 	FAR : 10000,
 	CAMERA_Z : 1000,
 	// Entity
-	count : 10,
+	count : 2000,
 	Z_GAP : 300,
 	Z_STEP : 0.1,
 	MIN_SPEED : 25,
@@ -18,7 +19,7 @@ ThreeWrapper.prototype  = {
 	MAX_DEPTH : 10,
 	//
 	startDelay : 2,
-	gridStep : 40,
+	gridStep : 20,
 	paused : false,
 	entitiesSpeedFactor : 1,
 	defaultImage : 'img/jap.jpg',
@@ -191,16 +192,22 @@ ThreeWrapper.prototype  = {
 		pointLight.position.z = 3000;
 
 		me.defineImagePlane({path : me.defaultImage}, function(){
-			me.initEntities({count : me.count});
+			if(me.SQUARE_ENTITY_MODE){
+				
+				me.grid = new Grid({
+					step : me.gridStep,
+					imagePlaneWrapper : me.imagePlaneWrapper
+				});
 
-			/*
-			me.grid = new Grid({
-				step : me.gridStep,
-				imagePlaneWrapper : me.imagePlaneWrapper
-			});
+				me.initSquaredEntities({count : me.count});
+			
+			}
+			else {
+				me.initEntities({count : me.count});
+			}
+			
 
-			me.initSquaredEntities({count : me.count});
-			//*/
+			
 			
 		});
 
@@ -212,7 +219,7 @@ ThreeWrapper.prototype  = {
 
 		for(var i = 0; i < data.count; ++i){
 
-			var inc = new Entity.random({sphere : true});
+			var inc = new Entity.random({cube : true});
 
 			var vec = me.getRandomPositionInImagePlane(inc.object.position.z);
 
