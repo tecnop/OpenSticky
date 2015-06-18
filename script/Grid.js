@@ -80,17 +80,27 @@ Grid.prototype = {
 
 	},
 	clipCoor : function (vector){
+		return new THREE.Vector3( 
+			parseInt(vector.x) - ( parseInt(vector.x) % this.step),
+			parseInt(vector.y) - ( parseInt(vector.y) % this.step),
+			vector.z
+		);
+
 		vector.x = vector.x - (vector.x % this.step);
 		vector.y = vector.y - (vector.y % this.step);
 	},
 	coorToIndex : function(x, y){
-		x = Math.abs( (x - (x % this.step)) + this.startX );
-		y = Math.abs( (y - (y % this.step)) + this.startY );
-	/*	console.log("coorToIndex :: x  : " + x + " y : " + y);
+		/*x = Math.abs( (x - (x % this.step)) + this.startX );
+		y = Math.abs( (y - (y % this.step)) + this.startY );*/
+		x = (x - (x % this.step)) + this.startX ;
+		y = (y - (y % this.step)) + this.startY ;
+		/*console.log("coorToIndex :: x  : " + x + " y : " + y);
 		console.log("coorToIndex :: i  : " + x/ this.step + " j : " + y/ this.step);*/
-		return {i : x / this.step, j : y / this.step};
+		return {i : (-1*x) / this.step, j : y / this.step};
 	},
-	/* Actions */
+	/* 
+	# Actions 
+	*/
 	// Add
 	addSquaredEntityByCoor : function(entity, definitive){
 		var coor = this.coorToIndex(entity.head.object.position.x, entity.head.object.position.y);
@@ -100,7 +110,7 @@ Grid.prototype = {
 	addSquaredEntityByIndex : function(entity, i , j, definitive){
 		if ( i < 0 || i > this.maxWidthIndex ||
 			 j < 0 || j > this.maxHeightIndex) {
-			if(LOG)
+			if(this.LOG)
 				console.warn("Cannot *add* entity. i : " + i + " j : " + j);
 			return;
 		}
@@ -197,6 +207,34 @@ Grid.prototype = {
 		return res;
 
 	},
+	getEntitiesInRectAdvanced : function (sI, eI, sJ, eJ, sourceEntity){
+
+		sI = sI < 0 ? 0 : sI > this.maxWidthIndex ? this.maxWidthIndex : sI;
+		eI = eI < 0 ? 0 : eI > this.maxWidthIndex ? this.maxWidthIndex : eI;
+
+		sJ = sJ < 0 ? 0 : sJ > this.maxHeightIndex ? this.maxHeightIndex : sJ; 
+		eJ = eJ < 0 ? 0 : eJ > this.maxHeightIndex ? this.maxHeightIndex : eJ;
+
+		var res = [];
+
+		for (var i = sI; i < eI; ++i) {
+			for (var j = sJ; j < eJ; ++j) {
+
+				if(this.grid[i][j].entities.length > 0) {
+
+					for (var k = 0, len = this.grid[i][j].entities.length; k < len; ++k){
+
+						if(sourceEntity.key != this.grid[i][j].entities[k].owner.key){
+							res.push(this.grid[i][j].entities[k].owner);
+						}
+					}
+						
+				}
+			}
+		}
+		return res;
+
+	},
 	// Random
 	getRandomSlot : function(){
 		var rI = Math.floor(Math.random() * this.grid.length);
@@ -204,6 +242,50 @@ Grid.prototype = {
 
 		return this.grid[rI][ Math.floor(Math.random() * this.grid[rI].length) ];
 	},
+	/*
+	# Entities managing
+	*/
+	validateEntity : function(entity){
+		for (var i = 0, len = entity.childs.length; i < len; ++i){
+			var coor = this.coorToIndex(entity.childs[i].object.position.x, entity.childs[i].object.position.y);
+			
+			if(!coor){
+				console.error("Cannot validate slot for entity square : " + entity.childs[i]);
+				continue;
+			}
+
+			this.grid[coor.i][coor.j].state = 3;
+		}
+	},
+	currEntitiesIndex : -1,
+	currEntitiesList : null,
+	nextEntity : function(){
+		if (!this.currEntityList || this.currEntitiesIndex >= this.currEntityList.length){
+			this.currEntityList = this.getEntitiesList();
+			this.currEntitiesIndex = -1;
+		}
+
+		return ++this.currEntitiesIndex < this.currEntityList.length ? this.currEntityList[this.currEntitiesIndex] : null;
+	},
+	getEntitiesList : function(){
+		var res = [];
+
+		for (var i = 0; i < this.maxWidthIndex; ++i) {
+	
+			for (var j = 0; j < this.maxHeightIndex; ++j) {
+				if(this.grid[i][j].entities.length > 0 && this.grid[i][j].state != 3) {
+					for (var e = 0; e < this.grid[i][j].entities.length; ++e){
+						res.push(this.grid[i][j].entities[e].owner);
+					}
+					
+				}
+					
+			}
+		}
+
+		return res;
+
+	}
 
 }
 
@@ -216,6 +298,7 @@ var GridSlot = function(data){
 		0 : empty
 		1 : pending : entity is moving to this slot
 		2 : occupied
+		3 : posed
 */
 GridSlot.prototype = {
 	init : function(data){

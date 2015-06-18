@@ -22,11 +22,25 @@ $(document).ready(function()  {
 		context : threeWrapper,
 		keys : {
 			plus : function(three) {
-				three.speedUp() ;
+				three.speedUp();
 			},
 			minus : function(three) {
-				three.slowDown() ;
+				three.slowDown();
 			},
+
+			'z' : function(three){
+				three.inc.add(new THREE.Vector3(0, three.gridStep, 0));
+			},
+			's' : function(three){
+				three.inc.add(new THREE.Vector3(0, -three.gridStep, 0));
+			},
+			'q' : function(three){
+				three.inc.add(new THREE.Vector3(-three.gridStep, 0, 0));
+			},
+			'd' : function(three){
+				three.inc.add(new THREE.Vector3(three.gridStep, 0, 0));
+			},
+
 			'h' : function(three) {
 				three.imagePlaneWrapper.imagePlane.visible = !three.imagePlaneWrapper.imagePlane.visible;
 			},
@@ -38,23 +52,43 @@ $(document).ready(function()  {
 			},
 			't' : function(three) {
 				
-				var inc = three.grid.getRandomSlot();
-
-				three.grid.removeSquaredEntityByCoor(three.inc);
-				
-				three.inc.destination = new THREE.Vector3(
-					inc.threeX, inc.threeY, three.inc.getPosition().z
-				);
-
+				three.initSquaredEntities({count : 1});
 
 
 			},
 			'y' : function(three) {
-				console.log("Position ? ", three.inc.getPosition());
-				console.log(three.grid.getSlotByCoor(three.inc.getPosition().x ,three.inc.getPosition().y ));
+				console.log(three.inc.calculateFitness(three));
+
+				/*var col = three.getSquareColor(three.inc, {width : three.inc.squareWidth, height : three.inc.squareHeight});
+					
+				
+				if(col){
+					three.inc.setColor(col);
+				}*/
 			},
+
 			'g' : function(three) {
-				three.geneticsManager.squareEvaluation(three);
+				var list = three.grid.getEntitiesList();
+
+				for (var i = 0, len = list.length; i < len; ++i){
+
+					three.executeActions(
+						three.geneticsManager.squareEvaluationByStep(three, list[i])
+					);
+
+				}
+
+				return;
+				var next = three.grid.nextEntity();
+				if(!next){
+					console.warn("next is null .. cannot use genetics.");
+					return;
+				}
+
+				var actions = three.geneticsManager.squareEvaluationByStep(three, next);
+
+				three.executeActions(actions);
+				//three.geneticsManager.squareEvaluation(three);
 			},
 			'c' : function(three) {
 
@@ -165,3 +199,55 @@ $(document).ready(function()  {
 
 
 
+THREE.StaticShader = {
+
+	uniforms: {
+
+		"tDiffuse": { type: "t", value: null },
+		"time":     { type: "f", value: 0.0 },
+		"amount":   { type: "f", value: 0.5 },
+		"size":     { type: "f", value: 4.0 }
+	},
+
+	vertexShader: [
+
+	"varying vec2 vUv;",
+
+	"void main() {",
+
+		"vUv = uv;",
+		"gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+
+	"}"
+
+	].join("\n"),
+
+	fragmentShader: [
+
+	"uniform sampler2D tDiffuse;",
+	"uniform float time;",
+	"uniform float amount;",
+	"uniform float size;",
+
+	"varying vec2 vUv;",
+
+	"float rand(vec2 co){",
+		"return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);",
+	"}",
+
+	"void main() {",
+		"vec2 p = vUv;",
+		"vec4 color = texture2D(tDiffuse, p);",
+		"float xs = floor(gl_FragCoord.x / size);",
+		"float ys = floor(gl_FragCoord.y / size);",
+		"vec4 snow = vec4(rand(vec2(xs * time,ys * time))*amount);",
+
+		//"gl_FragColor = color + amount * ( snow - color );", //interpolate
+
+		"gl_FragColor = color+ snow;", //additive
+
+	"}"
+
+	].join("\n")
+
+};

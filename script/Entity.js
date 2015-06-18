@@ -33,7 +33,8 @@ Entity.random.prototype = {
 	MAX_SPEED : 25,
 	MIN_DEPTH : 1,
 	MAX_DEPTH : 5,
-	DEFAULT_OPACITY : 0.8,
+	MIN_OPACITY : 0.5,
+	MAX_OPACITY : 0.8,
 	/*
 	key : "entity",
 	actions : {
@@ -74,8 +75,13 @@ Entity.random.prototype = {
 
 		me.color = new Color.float(Math.random(), Math.random(), Math.random() , me.DEFAULT_ALPHA);
 
-		if (data && data.cube){
+		if (data.cube){
+
 			me.geometry = me.defineCubeMesh()
+
+		}
+		else if (data.sphere) {
+			me.geometry = me.defineSphereMesh()
 		}
 		else {
 			me.geometry = me.definePlaneMesh();
@@ -84,19 +90,19 @@ Entity.random.prototype = {
 		var incCol = new THREE.Color(Math.random(), Math.random(), Math.random());
 
 		//MeshBasicMaterial - MeshLambertMaterial - MeshPhongMaterial
-		me.material = new THREE.MeshLambertMaterial({
+		/*me.material = new THREE.MeshLambertMaterial({
 			color: me.color.toHex(false),
-		});
-
-		/*me.material = new THREE.ShaderMaterial( {
-		    vertexShader: document.getElementById( 'vertexShader1' ).textContent,
-		    fragmentShader: document.getElementById( 'fragmentShader1' ).textContent
 		});*/
+		
+		me.material = new THREE.ShaderMaterial( {
+		    vertexShader:  document.getElementById('vertexShader1'),
+		    fragmentShader: document.getElementById('fragmentShader1')
+		});
 
 		//me.material.emissive = new THREE.Color(0.5,0.5,0.5);
 		
 		me.material.transparent = true;
-		me.material.opacity = me.DEFAULT_OPACITY;
+		me.material.opacity = Math.floor(Math.random() * (me.MAX_OPACITY - me.MIN_OPACITY + 1)) + me.MIN_OPACITY;
 
 		me.object = new THREE.Mesh(me.geometry, me.material);
 		me.object.position.z = me.getNextZ();
@@ -141,6 +147,15 @@ Entity.random.prototype = {
 		//geometry.computeBoundingSphere();
 
 		return geometry;
+	},
+	defineSphereMesh: function(){
+		var me = this,
+			z = Math.floor(Math.random() * (me.MAX_DEPTH - me.MIN_DEPTH + 1)) + me.MIN_DEPTH,
+			geometry = new THREE.SphereGeometry(z, 32,32);
+
+		//geometry.computeBoundingSphere();
+		return geometry;
+		
 	},
 	definePlaneMesh : function(){
 		var me = this,
@@ -199,11 +214,19 @@ Entity.squared.prototype = {
 	init : function(data){
 		var me = this;
 
+		this.onValidation = false;
+		this.posed = false;
+
 		this.key = "entity" + (++Entity.entityCount);
 
 		this.depth = data.depth;
 		this.squareWidth = data.squareWidth;
 		this.squareHeight = data.squareHeight;
+
+		this.size = {
+			width : this.squareWidth,
+			height :  this.squareHeight
+		};
 
 		this.speed = data.speed;
 
@@ -217,6 +240,7 @@ Entity.squared.prototype = {
 		}
 
 		this.color = data.color;
+		this.opacity = data.opacity || 1.0;
 
 		this.materials = {
 			default : new THREE.MeshLambertMaterial({
@@ -228,7 +252,7 @@ Entity.squared.prototype = {
 
 		}
 		this.materials.default.transparent = data.opacity ? true : false;
-		this.materials.default.opacity = data.opacity || 1.0;
+		this.materials.default.opacity = this.opacity;
 
 		this.buildSquares(this.matrix.intMatrix, this.matrix.col, this.matrix.row);
 
@@ -239,8 +263,9 @@ Entity.squared.prototype = {
 		});*/
 
 		this.head = this.childs[0];
+		this.head.isHead = true;
 
-		this.object = this.head;
+		this.object = this.head.object;
 
 	},
 	/* matrix size must be the exact matrix size (ex : 16 for 4*4 matrix) */
@@ -257,7 +282,7 @@ Entity.squared.prototype = {
 			if ( (intMatrix & Math.pow(2, i)) != 0){
 				/*console.log(" MATCH "  + i + " ? currX : " + currX + "; currY : " + currY);*/
 
-				var vec =  new THREE.Vector3(currX,currY,0);
+				//var vec =  new THREE.Vector3(currX,currY,0);
 
 				this.childs.push(new EntitySquare({
 					owner : this,
@@ -292,6 +317,25 @@ Entity.squared.prototype = {
 			scene.remove(this.childs[i].object);
 		}
 	},
+	removeSquares : function(count){
+		if (this.childs.length <= 1){
+			return;
+		}
+
+		var toDelete = [],
+			next = this.childs.pop();
+
+		while (next){
+			toDelete.push(next);
+
+			if(--count <= 0)
+				break;
+
+			next = this.childs[this.childs.length-1].isHead ? null : this.childs.pop();
+		}
+
+		return toDelete;
+	},
 	add : function(vector){
 		for (var i = 0, len = this.childs.length; i < len; ++i){
 			this.childs[i].add(vector);
@@ -307,6 +351,9 @@ Entity.squared.prototype = {
 		}
 	},
 	//*/
+	setColor : function(col){
+		this.materials.basic.color = col;
+	},
 	calculateFitness : function(three){
 		var res = 0;
 
@@ -338,61 +385,82 @@ Entity.squared.prototype = {
 		}
 	},
 	crossAND : function (entity) {
+		var incMatrix = this.matrix.intMatrix & entity.matrix.intMatrix;
+
+		if(0 == incMatrix){
+			return null;
+		}
 
 		return new Entity.squared({
 			speed : parseInt( (this.speed + entity.speed) / 2),
 			depth : parseInt( (this.depth + entity.depth) / 2),
-			squareWidth : this.gridStep,
-			squareHeight : this.gridStep,
+			squareWidth : this.squareWidth,
+			squareHeight : this.squareHeight,
 			color : new THREE.Color(
 				(this.color.r + entity.color.r ) / 2,
 				(this.color.g + entity.color.g ) / 2,
-				(this.color.b + entity.color.b ) / 2,
-				(this.color.a + entity.color.a ) / 2),
+				(this.color.b + entity.color.b ) / 2
+			),
+			opacity : (this.opacity + entity.opacity) / 2,
 			matrix : {
 				col : this.matrix.col,
 				row : this.matrix.row,
-				intMatrix : this.matrix.intMatrix & entity.matrix.intMatrix,
+				intMatrix : incMatrix,
 			}
 		});
 	},
 	crossOR : function (entity) {
+		var incMatrix = this.matrix.intMatrix |  entity.matrix.intMatrix;
+
+		if(0 == incMatrix){
+			return null;
+		}
 
 		return new Entity.squared({
 			speed : parseInt( (this.speed + entity.speed) / 2),
 			depth : parseInt( (this.depth + entity.depth) / 2),
-			squareWidth : this.gridStep,
-			squareHeight : this.gridStep,
+			squareWidth : this.squareWidth,
+			squareHeight : this.squareHeight,
 			color : new THREE.Color(
 				(this.color.r + entity.color.r ) / 2,
 				(this.color.g + entity.color.g ) / 2,
-				(this.color.b + entity.color.b ) / 2,
-				(this.color.a + entity.color.a ) / 2),
+				(this.color.b + entity.color.b ) / 2
+			),
+			opacity : (this.opacity + entity.opacity) / 2,
 			matrix : {
 				col : this.matrix.col,
 				row : this.matrix.row,
-				intMatrix : this.matrix.intMatrix | entity.matrix.intMatrix,
+				intMatrix : incMatrix,
 			}
 		});
 	},
 	crossXOR : function (entity) {
+		var incMatrix = this.matrix.intMatrix ^ entity.matrix.intMatrix;
+
+		if(0 == incMatrix){
+			return null;
+		}
 
 		return new Entity.squared({
 			speed : parseInt( (this.speed + entity.speed) / 2),
 			depth : parseInt( (this.depth + entity.depth) / 2),
-			squareWidth : this.gridStep,
-			squareHeight : this.gridStep,
+			squareWidth : this.squareWidth,
+			squareHeight : this.squareHeight,
 			color : new THREE.Color(
 				(this.color.r + entity.color.r ) / 2,
 				(this.color.g + entity.color.g ) / 2,
-				(this.color.b + entity.color.b ) / 2,
-				(this.color.a + entity.color.a ) / 2),
+				(this.color.b + entity.color.b ) / 2
+			),
+			opacity : (this.opacity + entity.opacity) / 2,
 			matrix : {
 				col : this.matrix.col,
 				row : this.matrix.row,
-				intMatrix : this.matrix.intMatrix ^ entity.matrix.intMatrix,
+				intMatrix : incMatrix,
 			}
 		});
+	},
+	randomMutate : function(add){
+
 	},
 	/* Mutates */
 	mutateSpecial2 : function (){
@@ -400,9 +468,10 @@ Entity.squared.prototype = {
 		return new Entity.squared({
 			speed : this.speed,
 			depth : this.depth,
-			squareWidth : this.gridStep,
-			squareHeight : this.gridStep,
+			squareWidth : this.squareWidth, 
+			squareHeight : this.squareHeight,
 			color : this.color,
+			opacity : this.opacity,
 			matrix : {
 				col : this.matrix.col,
 				row : this.matrix.row,
@@ -413,7 +482,35 @@ Entity.squared.prototype = {
 		
 	},
 	onDestinationReach : function(three){
-		three.grid.addSquaredEntityByCoor(this, false);
+		if(this.onValidation){
+
+			this.onValidation = false;
+
+			if (this.calculateFitness(three).percent >= 100){
+				
+				three.grid.validateEntity(this);
+
+				this.posed = true;
+
+				var col = three.getSquareColor(this, {width : this.squareWidth, height : this.squareHeight});
+					
+				console.log("Valide :: " , col);
+				if(col){
+					this.setColor(col);
+				}
+
+				//three.entitiesManager.remove(this);
+			}
+			else {
+				console.log("too late ..");
+				this.destination = new THREE.Vector3(this.oldPosition.x,this.oldPosition.y,this.oldPosition.y);
+			}
+
+		}
+		else {
+			three.grid.addSquaredEntityByCoor(this, false);
+		}
+		
 	}
 }
 

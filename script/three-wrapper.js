@@ -9,16 +9,16 @@ ThreeWrapper.prototype  = {
 	FAR : 10000,
 	CAMERA_Z : 1000,
 	// Entity
-	count : 150,
+	count : 10,
 	Z_GAP : 300,
-	Z_STEP : 0.2,
+	Z_STEP : 0.1,
 	MIN_SPEED : 25,
 	MAX_SPEED : 25,
 	MIN_DEPTH : 10,
 	MAX_DEPTH : 10,
 	//
 	startDelay : 2,
-	gridStep : 20,
+	gridStep : 40,
 	paused : false,
 	entitiesSpeedFactor : 1,
 	defaultImage : 'img/jap.jpg',
@@ -191,9 +191,9 @@ ThreeWrapper.prototype  = {
 		pointLight.position.z = 3000;
 
 		me.defineImagePlane({path : me.defaultImage}, function(){
-			//me.initEntities({count : me.count});
+			me.initEntities({count : me.count});
 
-			//*
+			/*
 			me.grid = new Grid({
 				step : me.gridStep,
 				imagePlaneWrapper : me.imagePlaneWrapper
@@ -212,7 +212,7 @@ ThreeWrapper.prototype  = {
 
 		for(var i = 0; i < data.count; ++i){
 
-			var inc = new Entity.random({cube : true});
+			var inc = new Entity.random({sphere : true});
 
 			var vec = me.getRandomPositionInImagePlane(inc.object.position.z);
 
@@ -236,13 +236,14 @@ ThreeWrapper.prototype  = {
 			matrix : {
 				col : 4,
 				row : 4,
-				intMatrix : Datas.cubesByInt[Math.floor(Math.random() * Datas.cubesByInt.length)],
+				intMatrix : 48765//Datas.cubesByInt[Math.floor(Math.random() * Datas.cubesByInt.length)],
 			}
 		})
 
 		this.inc.pushIntoScene(this.scenes.main);
 		this.entitiesManager.add(this.inc);
-		this.grid.addSquaredEntityByCoor(this.inc);
+		this.grid.addSquaredEntityByCoor(this.inc, true);
+		return;
 		// 1011111001111101 - 48765 - NAZII
 		//*/
 		
@@ -266,12 +267,15 @@ ThreeWrapper.prototype  = {
 
 			var slot = me.grid.getRandomSlot();
 			
+			me.addSquareEntity(inc, {destination : new THREE.Vector3(slot.threeX, slot.threeY, 0)});
+
+			/*
 			me.grid.addSquaredEntityByCoor(inc, true);
 
 			inc.pushIntoScene(me.scenes.main);
 			inc.destination = new THREE.Vector3(slot.threeX, slot.threeY, me.Z_GAP + (++me.Z_STEP));
 			me.entitiesManager.add(inc);
-			
+			//*/
 
 			setTimeout(function(){
 				fn(--count);
@@ -280,59 +284,105 @@ ThreeWrapper.prototype  = {
 
 		fn(data.count);
 	},
+	/*
+	# Entities Actions
+	*/
+	addSquareEntity : function(entity, options){
+		this.grid.addSquaredEntityByCoor(entity, true);
+
+		entity.pushIntoScene(this.scenes.main);
+
+		var destination = options && options.destination ? options.destination : new THREE.Vector3(0,0,0);
+
+		destination.z = this.Z_GAP + (++this.Z_STEP);
+		
+
+		this.entitiesManager.add(entity);
+
+		entity.destination = destination;
+
+	},
 	executeActions : function (actions){
+		//console.log(actions);
+		if(!actions){
+			return;
+		}
 		// # Remove
-		for (var i = 0, len = actions.remove.length; i < len; ++i) {
-			
-			actions.remove[i].removeFromScene(this.scenes.main);
+		if(actions.remove){
+			for (var i = 0, len = actions.remove.length; i < len; ++i) {
+				
+				this.grid.removeSquaredEntityByCoor(actions.remove[i], true);
 
-			this.entitiesManager.remove(actions.remove[i]);
+				actions.remove[i].removeFromScene(this.scenes.main);
 
-			this.grid.removeSquaredEntityByCoor(actions.remove[i], true);
+				this.entitiesManager.remove(actions.remove[i]);
 
-			console.log("rem");
-
+			}
 		}
+
 		// # Add
-		for (var i = 0, len = actions.add.length; i < len; ++i) {
-			
-			actions.add[i].pushIntoScene(this.scenes.main);
+		if(actions.add){
+			for (var i = 0, len = actions.add.length; i < len; ++i) {
+				
+				this.addSquareEntity(actions.add[i], {destination: actions.add[i].destination});
+				/*
+				this.grid.addSquaredEntityByCoor(actions.add[i], true);
 
-			this.entitiesManager.add(actions.add[i]);
+				actions.add[i].pushIntoScene(this.scenes.main);
 
-			this.grid.addSquaredEntityByCoor(actions.add[i], true);
+				this.entitiesManager.add(actions.add[i]);
 
-			console.log("add");
-
+				
+				console.log("add");
+				*/
+			}
 		}
+
 		// # Move
-		for (var i = 0, len = actions.move.length; i < len; ++i) {
-			
-			this.grid.removeSquaredEntityByCoor(actions.move[i]);
+		if(actions.move){
+			for (var i = 0, len = actions.move.length; i < len; ++i) {
+				
+				this.grid.removeSquaredEntityByCoor(actions.move[i]);
 
-			var inc = this.grid.getRandomSlot();
-			
-			actions.move[i].destination = new THREE.Vector3(
-				inc.threeX, inc.threeY, actions.move[i].getPosition().z
-			);
+				var inc = this.grid.getRandomSlot();
+				
+				actions.move[i].destination = new THREE.Vector3(
+					inc.threeX, inc.threeY, actions.move[i].getPosition().z
+				);
 
-			console.log("move");
+			
+			}
 		}
+
 		// # Validate
-		for (var i = 0, len = actions.validate.length; i < len; ++i) {
-			
-			this.grid.removeSquaredEntityByCoor(actions.validate[i]);
-			
-			actions.validate[i].oldPosition = choice.getPosition();
-			actions.validate[i].onValidtion = true;
+		if(actions.validate){
+			for (var i = 0, len = actions.validate.length; i < len; ++i) {
+				
+				//this.grid.removeSquaredEntityByCoor(actions.validate[i]);
+				
+				actions.validate[i].oldPosition = new THREE.Vector3( 
+					actions.validate[i].getPosition().x,
+					actions.validate[i].getPosition().y,
+					actions.validate[i].getPosition().z
+				);
 
-			actions.validate[i].destination = new THREE.Vector3(
-				actions.validate[i].getPosition().x, actions.validate[i].getPosition().y, 0
-			);
+				actions.validate[i].onValidation = true;
 
-			
+				actions.validate[i].destination = new THREE.Vector3(
+					actions.validate[i].getPosition().x, actions.validate[i].getPosition().y, 0
+				);
 
-			console.log("move");
+			}
+		}
+
+		// # Remove (Square)
+		if (actions.removeSquares){
+			for (var i = 0, len = actions.removeSquares.length; i < len; ++i) {
+				
+				--this.grid.entitiesCases;
+				
+				this.scenes.main.remove(actions.removeSquares[i].object);
+			}
 		}
 
 	},

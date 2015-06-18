@@ -3,6 +3,7 @@ var GeneticsManager = function(data){
 }
 
 GeneticsManager.prototype = {
+	LOG : true,
 	SELECTION_TYPE : [
 		// Roulette
 		function (context, data){
@@ -49,6 +50,146 @@ GeneticsManager.prototype = {
 			me.remove(toRemFromSelection[i]);
 		}
 	},
+	squareEvaluationByStep : function (three, entity){
+		var toKill = three.grid.entitiesCases - three.grid.expectedCases,
+			entityFitness = entity.calculateFitness(three).percent,
+			ratio = parseInt(toKill * 100 / three.grid.expectedCases);
+
+		// Stable
+		if (Math.abs(ratio) <= 10){
+
+			// I'm perfect
+			if (entityFitness >= 100){
+				return new Actions({validate : [entity]});
+			}
+		}
+		// More !
+		else if (ratio < 0) {
+			var rdm = Math.floor(Math.random() * 100);
+
+			// Cross
+			if (rdm >= 0){ // CHANGE ME
+				var moveRdm = Math.floor(Math.random() * 100);
+
+				// Move anyway ..
+				if (moveRdm < 15) {
+					return new Actions({move : [entity]});
+				}
+
+				var max = 5;
+				
+				var coor = three.grid.coorToIndex(entity.getPosition().x, entity.getPosition().y);
+				
+				var pickable = three.grid.getEntitiesInRectAdvanced(coor.i - 5, coor.i + 5, coor.j -5, coor.j +5, entity);
+
+				// Nothing found for crossing .. Move
+				if (pickable.length <= 0){
+					return new Actions({move : [entity]});
+				}
+
+				var cpt = 1,
+					selection = [
+						[], // perfect (100)
+						[], // middle class (40)
+						[], // bad's (20)
+						[]  // zero (0)
+					];
+				
+				for (var i = 0, len = pickable.length; i < len; ++i) {
+					
+					var inc = entity.randomCross(pickable[i]),
+						destination = new THREE.Vector3(
+							(entity.getPosition().x + pickable[i].getPosition().x) /2 ,
+							(entity.getPosition().y + pickable[i].getPosition().y) /2 ,
+							(entity.getPosition().z + pickable[i].getPosition().z) /2
+						);
+
+
+					// Result is corrupted (a kind of zombie !) ..
+					if(!inc) {
+						continue;
+					}
+
+					destination = three.grid.clipCoor(destination);
+
+					inc.add(destination);
+					
+					inc.destination = destination;
+
+					var fitness = inc.calculateFitness(three);
+
+					if (fitness.percent >= 100){
+						selection[0].push(inc);
+					}
+					else if (fitness.percent >= 40){
+						selection[1].push(inc);
+					}
+					else if (fitness.percent > 0){
+						selection[2].push(inc);
+					}
+					else {
+						selection[3].push(inc);
+					}
+
+					if(++cpt >= max){
+						break;
+					}
+				}
+				
+				var choiceRdm = Math.floor(Math.random() * 100);
+				
+
+				if (choiceRdm < 5 && selection[3].length > 0){
+					return new Actions({add : [selection[3].pop()]});
+				}
+				if (choiceRdm < 15 && selection[2].length > 0) {
+					return new Actions({add : [selection[2].pop()]});
+				}
+				if (choiceRdm < 40 && selection[1].length > 0){
+					return new Actions({add : [selection[1].pop()]});
+				}
+				if (selection[0].length > 0) {
+					return new Actions({add : [selection[0].pop()]});
+				}
+
+				// Mmh .. I hope it will never go there ..
+				console.warn("No selection found in cross..");
+				return null; 
+				
+			}
+			// Mutate
+			else { // TODO
+
+			}
+		}
+		// Less ...
+		else {
+
+			// It's TOO TOO much, sorry for you ... 
+			if (ratio > 50){
+				return new Actions({remove : [entity]});
+			}
+
+			var squares = entity.removeSquares(1);
+
+			return new Actions({removeSquares : [squares]});
+		}
+
+		return;
+		// Trop
+		if (toKill > 0){
+			//parseInt(res * 100 / this.childs.length)
+			ratio = parseInt(toKill * 100 / three.grid.expectedCases);
+		}
+		// Pas assez 
+		else {
+			ratio = parseInt((-1*toKill) * 100 / three.grid.expectedCases);
+		}
+
+		if (ratio <= 10){
+
+		}
+	},
 	squareEvaluation : function(three){
 		var toKill = three.grid.entitiesCases - three.grid.expectedCases,
 			res = [[],[],[]],
@@ -87,9 +228,13 @@ GeneticsManager.prototype = {
 					res[0][i].getPosition().z //(res[1][i].getPosition().z + res[1][last].getPosition().z) /2
 				);
 
+			if(!inc)
+				continue;
+
 			three.grid.clipCoor(postion);
 
-			inc.add(postion);
+			//inc.add(postion);
+			inc.destination = postion;
 
 			var fitness = inc.calculateFitness(three);
 
@@ -112,9 +257,13 @@ GeneticsManager.prototype = {
 					res[1][i].getPosition().z //(res[1][i].getPosition().z + res[1][last].getPosition().z) /2
 				);
 
+			if(!inc)
+				continue;
+
 			three.grid.clipCoor(postion);
 
-			inc.add(postion);
+			//inc.add(postion);
+			inc.destination = postion;
 
 			var fitness = inc.calculateFitness(three);
 
@@ -166,10 +315,7 @@ GeneticsManager.prototype = {
 
 			if (incRes[2].length > 0) {
 				choice =  incRes[2].pop();
-
-				
-
-				actions.validate.push(choice);
+				//actions.validate.push(choice);
 			}
 			else if (incRes[1].length > 0){
 				choice =  incRes[1].pop();
@@ -194,6 +340,7 @@ GeneticsManager.prototype = {
 
 			if (res[2].length > 0) {
 				choice =  res[2].pop();
+				actions.validate.push(choice);
 			}
 			else if (res[1].length > 0){
 				choice =  res[1].pop();
@@ -201,6 +348,7 @@ GeneticsManager.prototype = {
 			}
 			else if (res[0].length > 0){
 				choice =  res[0].pop();
+				actions.move.push(choice);
 			}
 			else {
 				break;
@@ -226,6 +374,7 @@ GeneticsManager.prototype = {
 			actions.remove.push(res[2][i]);
 		}
 
+		console.log(actions);
 		three.executeActions(actions);
 
 	},
@@ -359,3 +508,20 @@ GeneticsManager.prototype = {
 	}
 	
 }
+
+
+var Actions = function(data){
+	this.init(data);
+};
+
+Actions.prototype = {
+	init : function (data){
+		this.add = data.add;
+		this.remove = data.remove;
+		this.move = data.move;
+		this.validate = data.validate;
+
+		this.addSquares = data.removeSquares;
+		this.removeSquares = data.removeSquares;
+	}
+};
