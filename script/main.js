@@ -3,7 +3,7 @@ $(document).ready(function()  {
 
 	Componentz.injectStyles();
 
-
+	
 
 	//*
 	var threeWrapper = new ThreeWrapper({
@@ -14,12 +14,16 @@ $(document).ready(function()  {
 			width : $(document).width(),
 			height : $(document).height(),
 		},
+		orbitContainer : document.getElementById( 'main-canvas' ),
 		
 	});
 	//*/
 
+	injectInputs($('#inputs'),threeWrapper);
+
 	var inputs = new InputsListeners({
 		context : threeWrapper,
+		container :  $('#bottom-content'),
 		keys : {
 			plus : function(three) {
 				three.speedUp();
@@ -206,6 +210,179 @@ $(document).ready(function()  {
 });
 
 
+var injectInputs = function(div, three){
+
+	/*
+	MIN_WIDTH : 16,
+	MAX_WIDTH : 16,
+	MIN_HEIGHT : 16,
+	MAX_HEIGHT : 16,
+	MIN_SPEED : 1,
+	MAX_SPEED : 25,
+	MIN_DEPTH : 300,
+	MAX_DEPTH : 300,
+	MIN_OPACITY : 0.5,
+	MAX_OPACITY : 0.8,	
+	*/
+
+	var countBox = new Componentz.InputBox.constructor({
+		container : div,
+		width : 180,
+		item : {
+			label : "Count",
+			description : "number of entities",
+			dataType : "uinteger",
+			required : true,
+		},
+		options : {
+			inline : true
+		},
+		defaultValue : "1000",
+		helpers : {
+			step : 10,
+			max : 5000,
+			min : 1,
+		}
+	});
+
+	var minZstepBox = new Componentz.InputBox.constructor({
+		container : div,
+		width : 180,
+		item : {
+			label : "Min. Z Step",
+			description : "number of entities",
+			dataType : "float",
+			required : false,
+		},
+		options : {
+			inline : true
+		},
+		defaultValue : "0.3",
+		helpers : {
+			round : 2,
+			step : 0.1,
+			max : 1000,
+			min : 0.1,
+		}
+	});
+
+	var maxZstepBox = new Componentz.InputBox.constructor({
+		container : div,
+		width : 180,
+		item : {
+			label : "Max. Z Step",
+			description : "number of entities",
+			dataType : "float",
+			required : false,
+		},
+		options : {
+			inline : true
+		},
+		defaultValue : "0.3",
+		helpers : {
+			round : 2,
+			step : 0.1,
+			max : 1000,
+			min : 0.1,
+		}
+	});
+
+	var minWidthBox = new Componentz.InputBox.constructor({
+		container : div,
+		width : 180,
+		item : {
+			label : "Min Width",
+			description : "number of entities",
+			dataType : "uinteger",
+			required : true,
+		},
+		options : {
+			inline : true
+		},
+		defaultValue : "2",
+		helpers : {
+			step : 2,
+			max : 128,
+			min : 2,
+		}
+	});
+
+	var maxWidthBox = new Componentz.InputBox.constructor({
+		container : div,
+		width : 180,
+		item : {
+			label : "Max Width",
+			description : "number of entities",
+			dataType : "uinteger",
+			required : true,
+		},
+		options : {
+			inline : true
+		},
+		defaultValue : "16",
+		helpers : {
+			step : 2,
+			max : 128,
+			min : 2,
+		}
+	});
+
+	var minHeightBox = new Componentz.InputBox.constructor({
+		container : div,
+		width : 180,
+		item : {
+			label : "Min Height",
+			description : "number of entities",
+			dataType : "uinteger",
+			required : true,
+		},
+		options : {
+			inline : true
+		},
+		defaultValue : "2",
+		helpers : {
+			step : 2,
+			max : 128,
+			min : 2,
+		}
+	});
+
+	var maxHeightBox = new Componentz.InputBox.constructor({
+		container : div,
+		width : 180,
+		item : {
+			label : "Max Height",
+			description : "number of entities",
+			dataType : "uinteger",
+			required : true,
+		},
+		options : {
+			inline : true
+		},
+		defaultValue : "16",
+		helpers : {
+			step : 2,
+			max : 128,
+			min : 2,
+		}
+	});
+
+	var button = new Componentz.Button.constructor({
+		container : div,
+		width : 60,
+		height : 30,
+		label : "Go !",
+		action : function(e, item){
+			three.reset({
+				count : countBox.tryGetValue() || 1000,
+				
+			});
+		}
+	});
+
+}
+
+
 
 THREE.StaticShader = {
 
@@ -259,3 +436,4 @@ THREE.StaticShader = {
 	].join("\n")
 
 };
+

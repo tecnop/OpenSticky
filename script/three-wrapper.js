@@ -2,7 +2,7 @@ var ThreeWrapper = function (data){
 	this.inject(data);
 }
 ThreeWrapper.prototype  = {
-	SQUARE_ENTITY_MODE : true,
+	SQUARE_ENTITY_MODE : false,
 	// Camera attributes
 	MAX_Z : 5000,
 	VIEW_ANGLE : 45,
@@ -34,6 +34,8 @@ ThreeWrapper.prototype  = {
 
 		me.container = $('<div style="width:' + me.size.width + 'px;height:' + me.size.height + 'px;">');
 		
+		me.orbitContainer = data.orbitContainer;
+
 		me.time = {
 			lastTime : 0,
 			deltaTime : 1000/60,
@@ -173,7 +175,7 @@ ThreeWrapper.prototype  = {
 		me.scenes.main = new THREE.Scene();
 
 
-		var controls = new THREE.OrbitControls( me.cameras.main );
+		var controls = new THREE.OrbitControls( me.cameras.main , me.orbitContainer || document);
 
 
 		me.scenes.main.add(me.cameras.main);
@@ -227,7 +229,8 @@ ThreeWrapper.prototype  = {
 			inc.object.position.y = vec.y;
 
 			me.entitiesManager.add(inc);
-
+			me.scenes.main.add(inc.object);
+			me.geneticsManager.add(inc);
 		}
 	},
 	initSquaredEntities : function(data){
@@ -291,6 +294,12 @@ ThreeWrapper.prototype  = {
 		}
 
 		fn(data.count);
+	},
+	reset : function(newParams){
+		
+		for (var k in this.entitiesManager.entities) {
+			this.scenes.main.remove(this.entitiesManager.entities[k].object);
+		}
 	},
 	/*
 	# Entities Actions

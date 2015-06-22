@@ -50,7 +50,6 @@ InputsListeners.prototype = {
 		var me = this;
 		me.keys = data.keys;
 		me.context = data.context;
-
 		$(document).on("keypress", function(e){
 			if(me.keys[me.CHARS[e.charCode]+""]){
 				me.keys[me.CHARS[e.charCode]+""](me.context);
