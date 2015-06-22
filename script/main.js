@@ -50,10 +50,10 @@ $(document).ready(function()  {
 			'p' : function(three) {
 				three.pause();
 			},
-			't' : function(three) {
+			'n' : function(three) {
 				
-				//three.initSquaredEntities({count : 1});
-				three.initEntities({count : 10});
+				three.initSquaredEntities({count : 1});
+				//three.initEntities({count : 10});
 
 			},
 			'y' : function(three) {
@@ -113,6 +113,14 @@ $(document).ready(function()  {
 					);
 				}
 			},
+			'r' : function (three) {
+
+				for(var k in three.entitiesManager.entities){
+					var slot = three.grid.getRandomSlot();
+
+					three.entitiesManager.entities[k].destination = new THREE.Vector3(slot.threeX, slot.threeY, three.entitiesManager.entities[k].object.position.z); 
+				}
+			}
 		}
 	});
 

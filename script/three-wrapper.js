@@ -2,15 +2,15 @@ var ThreeWrapper = function (data){
 	this.inject(data);
 }
 ThreeWrapper.prototype  = {
-	SQUARE_ENTITY_MODE : false,
+	SQUARE_ENTITY_MODE : true,
 	// Camera attributes
 	MAX_Z : 5000,
 	VIEW_ANGLE : 45,
 	NEAR : 1,
 	FAR : 10000,
-	CAMERA_Z : 1000,
+	CAMERA_Z : 1300,
 	// Entity
-	count : 2000,
+	count : 1,
 	Z_GAP : 300,
 	Z_STEP : 0.1,
 	MIN_SPEED : 25,
@@ -268,7 +268,8 @@ ThreeWrapper.prototype  = {
 					col : 4,
 					row : 4,
 					intMatrix : Datas.cubesByInt[Math.floor(Math.random() * Datas.cubesByInt.length)],
-				}
+				},
+				headColor : new THREE.Color(1.0, 1.0, 1.0),
 			});
 
 
@@ -543,7 +544,7 @@ ThreeWrapper.prototype  = {
 
 					if( (me.entitiesManager.entities[key].speed * me.entitiesSpeedFactor) >= me.entitiesManager.entities[key].destination.distanceTo(me.entitiesManager.entities[key].getPosition())){
 						me.entitiesManager.entities[key].setPosition(me.entitiesManager.entities[key].destination);
-						me.entitiesManager.entities[key].onDestinationReach(me);
+						me.entitiesManager.entities[key].onDestinationReach(me, me.entitiesManager.entities[key].destination);
 						me.entitiesManager.entities[key].destination = null;
 
 					}

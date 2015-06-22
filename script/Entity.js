@@ -361,7 +361,12 @@ Entity.squared.prototype = {
 
 		this.head = this.childs[0];
 		this.head.isHead = true;
-
+		if(data.headColor){
+			this.head.object.material = new THREE.MeshBasicMaterial({
+				color : data.headColor
+			});
+		}
+		
 		this.object = this.head.object;
 
 	},
@@ -387,6 +392,8 @@ Entity.squared.prototype = {
 					width : this.squareWidth,
 					height : this.squareHeight,
 					depth : this.depth,
+					startX : currX,
+					startY : currY,
 					position : new THREE.Vector3(
 						currX,
 						currY,
@@ -441,13 +448,25 @@ Entity.squared.prototype = {
 	getPosition : function(){
 		return this.head.object.position;
 	},
-	//*
 	setPosition : function(vector){
+
 		for (var i = 0, len = this.childs.length; i < len; ++i){
-			this.childs[i].object.position = vector;
+			if( this.childs[i].isHead){
+
+				this.childs[i].object.position.copy(vector);
+
+			} else {
+				var diff = new THREE.Vector3(0,0,0);
+
+				diff = diff.subVectors(this.childs[i].startVector , this.head.startVector);
+
+				this.childs[i].object.position.copy(vector).add(diff);
+				
+			}
+				
 		}
+
 	},
-	//*/
 	setColor : function(col){
 		this.materials.basic.color = col;
 	},
@@ -471,10 +490,10 @@ Entity.squared.prototype = {
 	randomCross : function (entity){
 		var rdm = Math.floor(Math.random() * 100);
 
-		if (rdm <= 25){
+		if (rdm <= 50){
 			return this.crossAND(entity);
 		}
-		else if (rdm <= 50){
+		else if (rdm <= 100){
 			return this.crossXOR(entity);
 		}
 		else {
@@ -578,8 +597,11 @@ Entity.squared.prototype = {
 
 		
 	},
-	onDestinationReach : function(three){
-		if(this.onValidation){
+	onDestinationReach : function(three, destination) {
+
+		console.log("reach :: ", this.object.position , " destination :: ", destination);
+		
+		if (this.onValidation) {
 
 			this.onValidation = false;
 
@@ -627,6 +649,10 @@ EntitySquare.prototype = {
 		);
 
 		
+		this.startX = data.startX;
+		this.startY = data.startY;		
+
+		this.startVector = new THREE.Vector3(data.startX, data.startY, 0);
 
 		this.object.position.x = data.position.x;
 		this.object.position.y = data.position.y;
@@ -639,10 +665,3 @@ EntitySquare.prototype = {
 	}
 }
 
-var EntityFactory = {
-
-	getRandomSquaredEntity : function (data) {
-		//THREE.Color(Math.random(),Math.random(), Math.random()).getHex()
-	}
-
-}
