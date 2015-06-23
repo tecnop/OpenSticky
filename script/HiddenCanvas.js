@@ -101,7 +101,7 @@ HiddenCanvas.prototype = {
 			arr[3] += data[i + 3];
 		}
 
-		return new Color.decimal(
+		return new THREE.Color(
 			parseInt(arr[0] / cpt),
 			parseInt(arr[1] / cpt),
 			parseInt(arr[2] / cpt)

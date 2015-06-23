@@ -129,7 +129,7 @@ $(document).ready(function()  {
 	});
 
 	var drag = new Componentz.DragAndDrod.constructor({
-		container : $('#dragNdrop'),
+		container : $('#row1'),
 		listeners : [
 			// Must register an Event for "dragover" to ask browser to regonize file dropping 
 			{
@@ -213,10 +213,6 @@ $(document).ready(function()  {
 var injectInputs = function(div, three){
 
 	/*
-	MIN_WIDTH : 16,
-	MAX_WIDTH : 16,
-	MIN_HEIGHT : 16,
-	MAX_HEIGHT : 16,
 	MIN_SPEED : 1,
 	MAX_SPEED : 25,
 	MIN_DEPTH : 300,
@@ -225,8 +221,11 @@ var injectInputs = function(div, three){
 	MAX_OPACITY : 0.8,	
 	*/
 
+	/*
+	# Row 2
+	*/
 	var countBox = new Componentz.InputBox.constructor({
-		container : div,
+		container : $('#row2'),
 		width : 180,
 		item : {
 			label : "Count",
@@ -235,27 +234,157 @@ var injectInputs = function(div, three){
 			required : true,
 		},
 		options : {
-			inline : true
+			inlineBlock : true,
+			hideTypeInLabel : true,
 		},
 		defaultValue : "1000",
 		helpers : {
-			step : 10,
+			step : 50,
 			max : 5000,
 			min : 1,
 		}
 	});
 
-	var minZstepBox = new Componentz.InputBox.constructor({
-		container : div,
+
+	var minWidthBox = new Componentz.InputBox.constructor({
+		container : $('#row2'),
 		width : 180,
 		item : {
-			label : "Min. Z Step",
+			label : "Min Width",
 			description : "number of entities",
+			dataType : "uinteger",
+			required : true,
+		},
+		options : {
+			inlineBlock : true,
+			hideTypeInLabel : true,
+		},
+		defaultValue : "2",
+		helpers : {
+			step : 2,
+			max : 128,
+			min : 2,
+		}
+	});
+
+	var maxWidthBox = new Componentz.InputBox.constructor({
+		container : $('#row2'),
+		width : 180,
+		item : {
+			label : "Max Width",
+			description : "number of entities",
+			dataType : "uinteger",
+			required : true,
+		},
+		options : {
+			inlineBlock : true,
+			hideTypeInLabel : true,
+		},
+		defaultValue : "16",
+		helpers : {
+			step : 2,
+			max : 128,
+			min : 2,
+		}
+	});
+
+	var minHeightBox = new Componentz.InputBox.constructor({
+		container : $('#row2'),
+		width : 180,
+		item : {
+			label : "Min Height",
+			description : "number of entities",
+			dataType : "uinteger",
+	 		required : true,
+		},
+		options : {
+			inlineBlock : true,
+			hideTypeInLabel : true,
+		},
+		defaultValue : "2",
+		helpers : {
+			step : 2,
+			max : 128,
+			min : 2,
+		}
+	});
+
+	var maxHeightBox = new Componentz.InputBox.constructor({
+		container : $('#row2'),
+		width : 180,
+		item : {
+			label : "Max Height",
+			description : "number of entities",
+			dataType : "uinteger",
+			required : true,
+		},
+		options : {
+			inlineBlock : true,
+			hideTypeInLabel : true,
+		},
+		defaultValue : "16",
+		helpers : {
+			step : 2,
+			max : 128,
+			min : 2,
+		}
+	});
+	/*
+	# Row 3
+	*/
+	var minDepthBox = new Componentz.InputBox.constructor({
+		container : $('#row3'),
+		width : 180,
+		item : {
+			label : "Min Depth",
+			description : "depth of entities (z axes)",
+			dataType : "uinteger",
+			required : false,
+		},
+		options : {
+			inlineBlock : true
+		},
+		defaultValue : "1",
+		helpers : {
+			round : 1,
+			step : 1,
+			max : 500,
+			min : 1,
+		}
+	});
+
+	var maxDepthBox = new Componentz.InputBox.constructor({
+		container : $('#row3'),
+		width : 180,
+		item : {
+			label : "Max Depth",
+			description : "depth of entities (z axes)",
+			dataType : "uinteger",
+			required : false,
+		},
+		options : {
+			inlineBlock : true
+		},
+		defaultValue : "1",
+		helpers : {
+			round : 1,
+			step : 1,
+			max : 500,
+			min : 1,
+		}
+	});
+
+	var minZstepBox = new Componentz.InputBox.constructor({
+		container : $('#row3'),
+		width : 180,
+		item : {
+			label : "Min Z Step",
+			description : "distance (z axes) between objects",
 			dataType : "float",
 			required : false,
 		},
 		options : {
-			inline : true
+			inlineBlock : true
 		},
 		defaultValue : "0.3",
 		helpers : {
@@ -267,16 +396,16 @@ var injectInputs = function(div, three){
 	});
 
 	var maxZstepBox = new Componentz.InputBox.constructor({
-		container : div,
+		container : $('#row3'),
 		width : 180,
 		item : {
-			label : "Max. Z Step",
-			description : "number of entities",
+			label : "Max Z Step",
+			description : "distance (z axes) between objects",
 			dataType : "float",
 			required : false,
 		},
 		options : {
-			inline : true
+			inlineBlock : true
 		},
 		defaultValue : "0.3",
 		helpers : {
@@ -287,95 +416,24 @@ var injectInputs = function(div, three){
 		}
 	});
 
-	var minWidthBox = new Componentz.InputBox.constructor({
-		container : div,
-		width : 180,
-		item : {
-			label : "Min Width",
-			description : "number of entities",
-			dataType : "uinteger",
-			required : true,
-		},
-		options : {
-			inline : true
-		},
-		defaultValue : "2",
-		helpers : {
-			step : 2,
-			max : 128,
-			min : 2,
-		}
-	});
-
-	var maxWidthBox = new Componentz.InputBox.constructor({
-		container : div,
-		width : 180,
-		item : {
-			label : "Max Width",
-			description : "number of entities",
-			dataType : "uinteger",
-			required : true,
-		},
-		options : {
-			inline : true
-		},
-		defaultValue : "16",
-		helpers : {
-			step : 2,
-			max : 128,
-			min : 2,
-		}
-	});
-
-	var minHeightBox = new Componentz.InputBox.constructor({
-		container : div,
-		width : 180,
-		item : {
-			label : "Min Height",
-			description : "number of entities",
-			dataType : "uinteger",
-			required : true,
-		},
-		options : {
-			inline : true
-		},
-		defaultValue : "2",
-		helpers : {
-			step : 2,
-			max : 128,
-			min : 2,
-		}
-	});
-
-	var maxHeightBox = new Componentz.InputBox.constructor({
-		container : div,
-		width : 180,
-		item : {
-			label : "Max Height",
-			description : "number of entities",
-			dataType : "uinteger",
-			required : true,
-		},
-		options : {
-			inline : true
-		},
-		defaultValue : "16",
-		helpers : {
-			step : 2,
-			max : 128,
-			min : 2,
-		}
-	});
 
 	var button = new Componentz.Button.constructor({
-		container : div,
+		container : $('#row1'),
 		width : 60,
 		height : 30,
 		label : "Go !",
 		action : function(e, item){
 			three.reset({
-				count : countBox.tryGetValue() || 1000,
-				
+				count : countBox.getValue(),
+				MIN_WIDTH : minWidthBox.getValue(),
+				MAX_WIDTH : maxWidthBox.getValue(),
+				MIN_HEIGHT : minHeightBox.getValue(),
+				MAX_HEIGHT : maxHeightBox.getValue(),
+				/*MIN_Z_STEP : minZstepBox.getValue(),
+				MAX_Z_STEP : maxZstepBox.getValue(),*/
+				MIN_DEPTH : minDepthBox.getValue(),
+				MAX_DEPTH : maxDepthBox.getValue()
+
 			});
 		}
 	});

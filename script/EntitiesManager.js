@@ -24,6 +24,11 @@ EntitiesManager.prototype = {
 		--this.count;
 		delete this.entities[entity.key];
 	},
+	clear : function(){
+		this.count = 0;
+		delete this.entities;
+		this.entities = {};
+	},
 	calculateCount : function(){
 		var res = 0;
 		for (var k in this.entities)

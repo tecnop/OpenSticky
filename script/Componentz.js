@@ -125,6 +125,15 @@ var Componentz = {
 					'text-align : center;',
 					'font-weight : 600;',
 				'}',
+
+				'.default-button:hover {',
+					'background-color : #FFF;',
+				'}',
+
+				'.default-button.active {',
+					'background-color : #CCC;',
+					'border : 1px solid #EEE;',
+				'}',
 			];
 
 			return res.join('');
@@ -266,9 +275,16 @@ Componentz.InputBox.constructor.prototype = {
 
 		me.item = data.item;
 
-		var name = (me.dataType[me.item.dataType]) ? 
-			me.dataType[me.item .dataType].getLabel(me.item.label) : 
-			me.dataType['default'].getLabel(me.item.label);
+		var name;
+
+		if (data.options.hideTypeInLabel){
+			name = me.item.label;
+		}
+		else {
+			name = (me.dataType[me.item.dataType]) ? 
+				me.dataType[me.item .dataType].getLabel(me.item.label) : 
+				me.dataType['default'].getLabel(me.item.label);
+		}
 
 		me.container = jQuery('<div style="' + me.getStyles(data) + '">');
 
@@ -319,10 +335,11 @@ Componentz.InputBox.constructor.prototype = {
 				me.plusButton.removeClass('activeplus');
 			})
 			me.plusButton.on('click', function(e){
-				var val = me.parseValue();
+				var val = me.parseValue(),
+					factor = e.ctrlKey ? val + me.helpers.step * 5 : val + me.helpers.step;
 				
-
-				val = val + me.helpers.step <= me.helpers.max ? val + me.helpers.step : me.helpers.max;
+				
+				val = factor <= me.helpers.max ? factor : me.helpers.max;
 
 
 				
@@ -342,9 +359,10 @@ Componentz.InputBox.constructor.prototype = {
 				me.minusButton.removeClass('activeminus');
 			});
 			me.minusButton.on('click', function(e){
-				var val = me.parseValue();
+				var val = me.parseValue(),
+					factor = e.ctrlKey ? val - me.helpers.step * 5 : val - me.helpers.step;
 
-				val = val - me.helpers.step > me.helpers.min ?  val - me.helpers.step : me.helpers.min;
+				val = factor > me.helpers.min ?  factor : me.helpers.min;
 
 				me.input.val(Number((val).toFixed(me.helpers.round || 1)));
 			});
@@ -389,6 +407,9 @@ Componentz.InputBox.constructor.prototype = {
 
 		return (value && choosenOne.isValid(value.replace(/[ ]/g, ""))) ? value : null;
 
+	},
+	getValue : function(){
+		return this.input.val();
 	},
 	parseValue : function() {
 		var me = this,
@@ -494,7 +515,15 @@ Componentz.Button.constructor.prototype = {
 		this.container.on('click', function(e){
 			me.action(e, me);
 		});
-
+		this.container.on('mousedown', function(e){
+			me.container.addClass('active');
+		});
+		this.container.on('mouseup' , function(e){
+			me.container.removeClass('active');
+		});
+		this.container.on('mouseleave', function(e){
+			me.container.removeClass('active');
+		})
 		this.container.html(data.label);
 
 		data.container.append(this.container);

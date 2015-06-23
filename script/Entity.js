@@ -3,27 +3,42 @@ var Entity = {
 	currZ : 2,
 	entityCount : 0,
 	// Constructorz
-	random : function(data){
-		this.randomInit(data);
+	random : {
+		MAX_Z : 3000,
+		MIN_Z_STEP : 0.3,
+		MAX_Z_STEP : 0.5,
+		MIN_WIDTH : 2,
+		MAX_WIDTH : 64,
+		MIN_HEIGHT : 2,
+		MAX_HEIGHT : 64,
+		MIN_SPEED : 1,
+		MAX_SPEED : 25,
+		MIN_DEPTH : 5,
+		MAX_DEPTH : 25,
+		MIN_OPACITY : 0.5,
+		MAX_OPACITY : 0.8,
+		constructor : function(data){
+			this.randomInit(data);
+		},
+		defineRandomValues : function(data){
+			for (var k in data){
+				if (this[k]){
+					this[k] = data[k]; 
+				}
+			}
+		}
+	},
+	defined : function(data){
+		this.init(data);
 	},
 	squared : function(data){
 		this.init(data);
 	},
-	fromCode : function(data){
-		this.randomInit(data);
-	}
+	
 }
 
-/*
-#  data : {
-	context : <ThreeWrapper>,
-	data : {
-	
-	}	
-}
-*/
-Entity.random.prototype = {
-	MAX_Z : 3000,
+Entity.random.constructor.prototype = {
+	/*MAX_Z : 3000,
 	MIN_Z_STEP : 0.3,
 	MAX_Z_STEP : 0.5,
 	MIN_WIDTH : 2,
@@ -35,7 +50,7 @@ Entity.random.prototype = {
 	MIN_DEPTH : 5,
 	MAX_DEPTH : 25,
 	MIN_OPACITY : 0.5,
-	MAX_OPACITY : 0.8,
+	MAX_OPACITY : 0.8,*/
 	/*
 	key : "entity",
 	actions : {
@@ -54,9 +69,10 @@ Entity.random.prototype = {
 	},
 	*/
 	randomInit : function(data){
+
 		var me = this,
-			width = Math.floor(Math.random() * (me.MAX_WIDTH - me.MIN_WIDTH + 1)) + me.MIN_WIDTH,
-			height = Math.floor(Math.random() * (me.MAX_HEIGHT - me.MIN_HEIGHT + 1)) + me.MIN_HEIGHT;
+			width = Math.floor(Math.random() * (Entity.random.MAX_WIDTH - Entity.random.MIN_WIDTH + 1)) + Entity.random.MIN_WIDTH,
+			height = Math.floor(Math.random() * (Entity.random.MAX_HEIGHT - Entity.random.MIN_HEIGHT + 1)) + Entity.random.MIN_HEIGHT;
 
 		
 
@@ -74,9 +90,9 @@ Entity.random.prototype = {
 		me.size.width = me.size.midWidth *2;
 		me.size.height = me.size.midHeight *2;
 
-		me.speed = Math.floor(Math.random() * (me.MAX_SPEED - me.MIN_SPEED + 1)) + me.MIN_SPEED;
+		me.speed = Math.floor(Math.random() * (Entity.random.MAX_SPEED - Entity.random.MIN_SPEED + 1)) + Entity.random.MIN_SPEED;
 
-		me.color = new Color.float(Math.random(), Math.random(), Math.random() , me.DEFAULT_ALPHA);
+		me.color = new THREE.Color(Math.random(), Math.random(), Math.random());
 
 		if (data.cube){
 
@@ -94,7 +110,7 @@ Entity.random.prototype = {
 
 		//MeshBasicMaterial - MeshLambertMaterial - MeshPhongMaterial
 		me.material = new THREE.MeshBasicMaterial({
-			color: me.color.toHex(false),
+			color: me.color.getHex(),
 		});
 		
 		/*me.material = new THREE.ShaderMaterial( {
@@ -105,7 +121,7 @@ Entity.random.prototype = {
 		me.material.emissive = new THREE.Color(0,0,0);
 		
 		me.material.transparent = true;
-		me.material.opacity = Math.floor(Math.random() * (me.MAX_OPACITY - me.MIN_OPACITY + 1)) + me.MIN_OPACITY;
+		me.material.opacity = Math.floor(Math.random() * (Entity.random.MAX_OPACITY - Entity.random.MIN_OPACITY + 1)) + Entity.random.MIN_OPACITY;
 
 		me.object = new THREE.Mesh(me.geometry, me.material);
 		me.object.position.z = me.getNextZ();
@@ -236,7 +252,7 @@ Entity.random.prototype = {
 	},
 	defineCubeMesh : function(){
 		var me = this,
-			z = Math.floor(Math.random() * (me.MAX_DEPTH - me.MIN_DEPTH + 1)) + me.MIN_DEPTH,
+			z = Math.floor(Math.random() * (Entity.random.MAX_DEPTH - Entity.random.MIN_DEPTH + 1)) + Entity.random.MIN_DEPTH,
 			geometry = new THREE.BoxGeometry(me.size.width, me.size.height, z);
 
 		//geometry.computeBoundingSphere();
@@ -245,7 +261,7 @@ Entity.random.prototype = {
 	},
 	defineSphereMesh: function(){
 		var me = this,
-			z = Math.floor(Math.random() * (me.MAX_DEPTH - me.MIN_DEPTH + 1)) + me.MIN_DEPTH,
+			z = Math.floor(Math.random() * (Entity.random.MAX_DEPTH - Entity.random.MIN_DEPTH + 1)) + Entity.random.MIN_DEPTH,
 			geometry = new THREE.SphereGeometry(z, 32,32);
 
 		//geometry.computeBoundingSphere();
@@ -271,20 +287,15 @@ Entity.random.prototype = {
 		return geometry;
 	},
 	getNextZ : function(){
-		var nextZ = Math.floor(Math.random() * (this.MAX_Z_STEP - this.MIN_Z_STEP + 1)) + this.MIN_Z_STEP;
+		var nextZ = Math.floor(Math.random() * (Entity.random.MAX_Z_STEP - Entity.random.MIN_Z_STEP + 1)) + Entity.random.MIN_Z_STEP;
 
-		Entity.currZ = Entity.currZ <= this.MAX_Z ? Entity.currZ + nextZ : this.MAX_Z;
+		Entity.currZ = Entity.currZ <= Entity.random.MAX_Z ? Entity.currZ + nextZ : Entity.random.MAX_Z;
 		return Entity.currZ;
 	},
 	setColor : function(color){
 		var me = this;
 		me.color = color;
-		me.material.color = {
-			r : me.color.r,
-			g : me.color.g,
-			b : me.color.b,
-			a : me.color.a || 1.0
-		};
+		me.material.color.copy(color);
 	},
 	getPosition : function(){
 		return this.object.position;
@@ -295,16 +306,15 @@ Entity.random.prototype = {
 	add : function(vec) {
 		this.object.position.add(vec);
 	},
-	evaluate : function(three){
-		return this.color.comparate( three.getSquareColor(this, {width : this.size.width, height : this.size.height}) );
-	},
 	onDestinationReach : function(three){
 		three.geneticsManager.add(this);
 	},
 
 }
 
-Entity.fromCode.prototype = Entity.random.prototype;
+Entity.defined.prototype = {
+
+}
 
 Entity.squared.prototype = {
 

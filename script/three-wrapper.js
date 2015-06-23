@@ -221,7 +221,7 @@ ThreeWrapper.prototype  = {
 
 		for(var i = 0; i < data.count; ++i){
 
-			var inc = new Entity.random({cube : true});
+			var inc = new Entity.random.constructor({cube : true});
 
 			var vec = me.getRandomPositionInImagePlane(inc.object.position.z);
 
@@ -235,28 +235,8 @@ ThreeWrapper.prototype  = {
 	},
 	initSquaredEntities : function(data){
 		var me = this;
-
-		/*
-		this.inc = new Entity.squared({
-			speed : 10,
-			depth : 5,
-			squareWidth : this.gridStep,
-			squareHeight : this.gridStep,
-			color : new THREE.Color(1.0,0,0), 
-			matrix : {
-				col : 4,
-				row : 4,
-				intMatrix : 48765//Datas.cubesByInt[Math.floor(Math.random() * Datas.cubesByInt.length)],
-			}
-		})
-
-		this.inc.pushIntoScene(this.scenes.main);
-		this.entitiesManager.add(this.inc);
-		this.grid.addSquaredEntityByCoor(this.inc, true);
-		return;
 		// 1011111001111101 - 48765 - NAZII
-		//*/
-		
+
 		var fn = function(count) {
 			if(count <= 0)
 				return;
@@ -280,14 +260,6 @@ ThreeWrapper.prototype  = {
 			
 			me.addSquareEntity(inc, {destination : new THREE.Vector3(slot.threeX, slot.threeY, 0)});
 
-			/*
-			me.grid.addSquaredEntityByCoor(inc, true);
-
-			inc.pushIntoScene(me.scenes.main);
-			inc.destination = new THREE.Vector3(slot.threeX, slot.threeY, me.Z_GAP + (++me.Z_STEP));
-			me.entitiesManager.add(inc);
-			//*/
-
 			setTimeout(function(){
 				fn(--count);
 			}, me.startDelay);
@@ -296,10 +268,23 @@ ThreeWrapper.prototype  = {
 		fn(data.count);
 	},
 	reset : function(newParams){
-		
+		console.log("newParams : ", newParams);
+		this.Z_STEP = 0.1;
+		/* Setting new parmas*/
+		Entity.random.defineRandomValues(newParams);
+
+		/* Reset */
 		for (var k in this.entitiesManager.entities) {
 			this.scenes.main.remove(this.entitiesManager.entities[k].object);
 		}
+
+		this.entitiesManager.clear();
+
+		delete this.geneticsManager.selection;
+
+		this.geneticsManager.selection = {};
+
+		this.initEntities({count : newParams.count || this.count});
 	},
 	/*
 	# Entities Actions
@@ -568,6 +553,11 @@ ThreeWrapper.prototype  = {
 							)
 						);
 					}
+				}
+
+				if (me.entitiesManager.entities[key].destinationColor){
+					
+					me.entitiesManager.entities[key].getColor().lerp()
 				}
 			}
 
