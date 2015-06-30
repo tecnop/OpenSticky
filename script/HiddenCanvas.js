@@ -100,11 +100,11 @@ HiddenCanvas.prototype = {
 			arr[2] += data[i + 2];
 			arr[3] += data[i + 3];
 		}
-
-		return new THREE.Color(
-			parseInt(arr[0] / cpt),
-			parseInt(arr[1] / cpt),
-			parseInt(arr[2] / cpt)
+		
+		return new THREE.Color("rgb(" +
+			parseInt(arr[0] / cpt) + "," +
+			parseInt(arr[1] / cpt) + "," +
+			parseInt(arr[2] / cpt) +")"
 		);
 	}
 }

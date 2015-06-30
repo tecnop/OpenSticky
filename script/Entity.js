@@ -13,8 +13,8 @@ var Entity = {
 		MAX_HEIGHT : 64,
 		MIN_SPEED : 1,
 		MAX_SPEED : 25,
-		MIN_DEPTH : 5,
-		MAX_DEPTH : 25,
+		MIN_DEPTH : 2,
+		MAX_DEPTH : 14,
 		MIN_OPACITY : 0.5,
 		MAX_OPACITY : 0.8,
 		constructor : function(data){
@@ -609,11 +609,12 @@ Entity.squared.prototype = {
 	},
 	onDestinationReach : function(three, destination) {
 
-		console.log("reach :: ", this.object.position , " destination :: ", destination);
 		
 		if (this.onValidation) {
 
 			this.onValidation = false;
+
+			console.log("onValidation fitness : ", this.calculateFitness(three));
 
 			if (this.calculateFitness(three).percent >= 100){
 				
@@ -623,7 +624,6 @@ Entity.squared.prototype = {
 
 				var col = three.getSquareColor(this, {width : this.squareWidth, height : this.squareHeight});
 					
-				console.log("Valide :: " , col);
 				if(col){
 					this.setColor(col);
 				}
@@ -631,8 +631,13 @@ Entity.squared.prototype = {
 				//three.entitiesManager.remove(this);
 			}
 			else {
-				console.log("too late ..");
-				this.destination = new THREE.Vector3(this.oldPosition.x,this.oldPosition.y,this.oldPosition.y);
+				console.log("too late .. Curr : ", this.object.position , " Des : ", this.oldPosition, " Distance : ", this.oldPosition.distanceTo(this.object.position));
+				this.destination = new THREE.Vector3(	this.oldPosition.x,
+														this.oldPosition.y,
+														this.oldPosition.z
+													);
+
+				//three.grid.addSquaredEntityByCoor(this, false);
 			}
 
 		}

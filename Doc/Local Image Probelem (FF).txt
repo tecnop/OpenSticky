@@ -1,5 +1,20 @@
-Go to about:config
+############
+# Fire Fox #
+############
 
-Find security.fileuri.strict_origin_policy parameter
+1 - Go to 'about:config
 
+' url
+2 - Find 'security.fileuri.strict_origin_policy' parameter
+
+3 - 
 Set it to false
+
+##########
+# Chrome #
+##########
+
+1 - Go to 'chrome://flags/'
+2 - Find (french) :
+	- Autoriser les certificats non valides pour les ressources chargées à partir de l'hôte local Mac, Windows, Linux, Chrome OS, Android
+3 - Activate it.

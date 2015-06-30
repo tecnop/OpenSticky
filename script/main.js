@@ -18,7 +18,7 @@ $(document).ready(function()  {
 		
 	});
 	//*/
-
+	
 	injectInputs($('#inputs'),threeWrapper);
 
 	var inputs = new InputsListeners({
@@ -33,16 +33,16 @@ $(document).ready(function()  {
 			},
 
 			'z' : function(three){
-				three.inc.add(new THREE.Vector3(0, three.gridStep, 0));
+				three.entities[three.entities.length-1].add(new THREE.Vector3(0, three.gridStep, 0));
 			},
 			's' : function(three){
-				three.inc.add(new THREE.Vector3(0, -three.gridStep, 0));
+				three.entities[three.entities.length-1].add(new THREE.Vector3(0, -three.gridStep, 0));
 			},
 			'q' : function(three){
-				three.inc.add(new THREE.Vector3(-three.gridStep, 0, 0));
+				three.entities[three.entities.length-1].add(new THREE.Vector3(-three.gridStep, 0, 0));
 			},
 			'd' : function(three){
-				three.inc.add(new THREE.Vector3(three.gridStep, 0, 0));
+				three.entities[three.entities.length-1].add(new THREE.Vector3(three.gridStep, 0, 0));
 			},
 
 			'h' : function(three) {
@@ -60,15 +60,11 @@ $(document).ready(function()  {
 				//three.initEntities({count : 10});
 
 			},
+			't' : function(three) {
+				three.executeActions(new Actions( {validate : [three.entitiesManager.last] } ) );
+			},
 			'y' : function(three) {
-				console.log(three.inc.calculateFitness(three));
-
-				/*var col = three.getSquareColor(three.inc, {width : three.inc.squareWidth, height : three.inc.squareHeight});
-					
-				
-				if(col){
-					three.inc.setColor(col);
-				}*/
+				console.log(three.grid.gridToString());
 			},
 
 			'g' : function(three) {

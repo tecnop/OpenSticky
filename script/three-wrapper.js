@@ -2,7 +2,7 @@ var ThreeWrapper = function (data){
 	this.inject(data);
 }
 ThreeWrapper.prototype  = {
-	SQUARE_ENTITY_MODE : false,
+	SQUARE_ENTITY_MODE : true,
 	// Camera attributes
 	MAX_Z : 5000,
 	VIEW_ANGLE : 45,
@@ -36,10 +36,6 @@ ThreeWrapper.prototype  = {
 		
 		me.orbitContainer = data.orbitContainer;
 
-		me.time = {
-			lastTime : 0,
-			deltaTime : 1000/60,
-		}
 
 		me.entitiesManager = new EntitiesManager({threeWrapper : me});
 
@@ -207,10 +203,6 @@ ThreeWrapper.prototype  = {
 			else {
 				me.initEntities({count : me.count});
 			}
-			
-
-			
-			
 		});
 
 		// add to the scene
@@ -256,8 +248,15 @@ ThreeWrapper.prototype  = {
 			});
 
 
-			var slot = me.grid.getRandomSlot();
+			var slot = me.grid.grid[0][0];//getRandomSlot();
 			
+			// DEL ME
+			var testSlot = me.grid.grid[me.grid.maxHeightIndex][me.grid.maxWidthIndex];
+			console.log(testSlot);
+			var testIndex = me.grid.coorToIndex(testSlot.threeX, testSlot.threeY);
+			console.log(testIndex);
+			//
+
 			me.addSquareEntity(inc, {destination : new THREE.Vector3(slot.threeX, slot.threeY, 0)});
 
 			setTimeout(function(){
@@ -290,7 +289,7 @@ ThreeWrapper.prototype  = {
 	# Entities Actions
 	*/
 	addSquareEntity : function(entity, options){
-		this.grid.addSquaredEntityByCoor(entity, true);
+		//this.grid.addSquaredEntityByCoor(entity, true);
 
 		entity.pushIntoScene(this.scenes.main);
 
@@ -355,12 +354,13 @@ ThreeWrapper.prototype  = {
 			
 			}
 		}
+	
+		// # Validate	
+		if (actions.validate) {
 
-		// # Validate
-		if(actions.validate){
 			for (var i = 0, len = actions.validate.length; i < len; ++i) {
 				
-				//this.grid.removeSquaredEntityByCoor(actions.validate[i]);
+				this.grid.removeSquaredEntityByCoor(actions.validate[i]);
 				
 				actions.validate[i].oldPosition = new THREE.Vector3( 
 					actions.validate[i].getPosition().x,
@@ -371,7 +371,9 @@ ThreeWrapper.prototype  = {
 				actions.validate[i].onValidation = true;
 
 				actions.validate[i].destination = new THREE.Vector3(
-					actions.validate[i].getPosition().x, actions.validate[i].getPosition().y, 0
+					actions.validate[i].getPosition().x, 
+					actions.validate[i].getPosition().y, 
+					0
 				);
 
 			}
@@ -485,7 +487,6 @@ ThreeWrapper.prototype  = {
 	changeFramerate : function(time){
 		var me = this;
 		me.stop();
-		me.time = time;
 		me.start();
 	},
 	speedUp : function(){
@@ -523,14 +524,14 @@ ThreeWrapper.prototype  = {
 			requestAnimationFrame(run);
 
 
-			for( var key in me.entitiesManager.entities){
-
-				for(var i = 0, len = me.entitiesManager.entities[key].actions.continuous.length; i<len; ++i ){
+			for (var key in me.entitiesManager.entities) {
+				
+				for (var i = 0, len = me.entitiesManager.entities[key].actions.continuous.length; i<len; ++i ) {
 					me.entitiesManager.entities[key].actions.continuous[i](me);
 				}
 
 				if(me.entitiesManager.entities[key].destination){
-
+					console.log("des");
 					var vec = fakeVector.subVectors(
 						me.entitiesManager.entities[key].destination,
 						me.entitiesManager.entities[key].getPosition()
@@ -556,7 +557,7 @@ ThreeWrapper.prototype  = {
 				}
 
 				if (me.entitiesManager.entities[key].destinationColor){
-					
+
 					me.entitiesManager.entities[key].getColor().lerp()
 				}
 			}

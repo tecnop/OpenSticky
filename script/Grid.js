@@ -23,6 +23,7 @@ var Grid = function (data){
 
 */
 Grid.prototype = {
+	DEBUG_MODE : true,
 	BASE_VECTOR : new THREE.Vector3(0,0,0),
 	LOG : false,
 	init : function(data){
@@ -44,21 +45,22 @@ Grid.prototype = {
 		this.maxWidth = this.width - (this.width % this.step);
 		this.maxHeight = this.height - (this.height % this.step);
 
-		this.maxWidthIndex = w -1;
 		this.maxHeightIndex = h -1;
+		this.maxWidthIndex = w -1;
+		
 
-		//console.log(" w : " + w + " h : " + h + " step : " + this.step);
+		console.log(" w : " + w + " h : " + h + " step : " + this.step);
 
 		//var lineMsg = "";
 		this.expectedCases = 0;
 		this.entitiesCases = 0;
 
-		for (var i = 0; i < w; ++i) {
+		for (var i = 0; i < h; ++i) {
 			this.grid.push([]);
 
 
 			//lineMsg += "[" 
-			for (var j = 0; j < h; ++j) {
+			for (var j = 0; j < w; ++j) {
 				this.grid[i].push(new GridSlot({
 					threeX : currX,
 					threeY : currY,
@@ -90,13 +92,23 @@ Grid.prototype = {
 		vector.y = vector.y - (vector.y % this.step);
 	},
 	coorToIndex : function(x, y){
-		/*x = Math.abs( (x - (x % this.step)) + this.startX );
-		y = Math.abs( (y - (y % this.step)) + this.startY );*/
+
+		x = (x - (x % this.step)) - (this.startX) ;
+		y = (y - (y % this.step)) - (this.startY) ;
+
+		var incX = x == 0 ? 0 : x / this.step,
+			incY = y == 0 ? 0 : y / this.step;
+
+		return {i : Math.abs(incY) ,j : Math.abs(incX)};
+
+		/*
 		x = (x - (x % this.step)) + this.startX ;
 		y = (y - (y % this.step)) + this.startY ;
-		/*console.log("coorToIndex :: x  : " + x + " y : " + y);
-		console.log("coorToIndex :: i  : " + x/ this.step + " j : " + y/ this.step);*/
+
+		//console.log("coorToIndex :: x  : " + x + " y : " + y);
+		//console.log("coorToIndex :: i  : " + x/ this.step + " j : " + y/ this.step);
 		return {i : (-1*x) / this.step, j : y / this.step};
+		*/
 	},
 	/* 
 	# Actions 
@@ -246,11 +258,12 @@ Grid.prototype = {
 	# Entities managing
 	*/
 	validateEntity : function(entity){
+		//console.log("validateEntity ! ", entity);
 		for (var i = 0, len = entity.childs.length; i < len; ++i){
 			var coor = this.coorToIndex(entity.childs[i].object.position.x, entity.childs[i].object.position.y);
 			
 			if(!coor){
-				console.error("Cannot validate slot for entity square : " + entity.childs[i]);
+				console.error("Cannot validate slot for entity square : ", entity.childs[i]);
 				continue;
 			}
 
@@ -275,7 +288,11 @@ Grid.prototype = {
 			for (var j = 0; j < this.maxHeightIndex; ++j) {
 				if(this.grid[i][j].entities.length > 0 && this.grid[i][j].state != 3) {
 					for (var e = 0; e < this.grid[i][j].entities.length; ++e){
-						res.push(this.grid[i][j].entities[e].owner);
+
+						if(this.grid[i][j].entities[e].isHead) {
+							res.push(this.grid[i][j].entities[e].owner);
+						}
+						
 					}
 					
 				}
@@ -284,6 +301,22 @@ Grid.prototype = {
 		}
 
 		return res;
+
+	},
+	gridToString : function (){
+		console.log("*** Grid : ***");
+
+		for (var i = 0; i < this.maxHeightIndex + 1; ++i) {
+
+			var msg = (i < 10 ? i+" " : i) + " # ";
+
+			for (var j = 0; j < this.maxWidthIndex + 1; ++j) {
+				msg += ' ' + (this.grid[i][j].state == 0 ? '.' : this.grid[i][j].state) + ' ,';
+			}
+			console.log(msg + " #");
+		}
+
+		console.log("***  END  ***");
 
 	}
 
@@ -310,10 +343,12 @@ GridSlot.prototype = {
 
 	},
 	addEntity : function(entitySquare){
+		this.state = 2;
 		this.entities.push(entitySquare);
 	},
 	removeEntity : function(entitySquare){
 		if (this.entities.length == 1){
+			this.state = 0;
 			this.entities.pop();
 		}
 		else {
