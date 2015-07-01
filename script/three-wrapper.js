@@ -248,14 +248,8 @@ ThreeWrapper.prototype  = {
 			});
 
 
-			var slot = me.grid.grid[0][0];//getRandomSlot();
+			var slot = me.grid.getRandomSlot();
 			
-			// DEL ME
-			var testSlot = me.grid.grid[me.grid.maxHeightIndex][me.grid.maxWidthIndex];
-			console.log(testSlot);
-			var testIndex = me.grid.coorToIndex(testSlot.threeX, testSlot.threeY);
-			console.log(testIndex);
-			//
 
 			me.addSquareEntity(inc, {destination : new THREE.Vector3(slot.threeX, slot.threeY, 0)});
 
@@ -288,8 +282,8 @@ ThreeWrapper.prototype  = {
 	/*
 	# Entities Actions
 	*/
-	addSquareEntity : function(entity, options){
-		//this.grid.addSquaredEntityByCoor(entity, true);
+	addSquareEntity : function(entity, options, definitive){
+		this.grid.addSquaredEntityByCoor(entity, definitive);
 
 		entity.pushIntoScene(this.scenes.main);
 
@@ -312,7 +306,7 @@ ThreeWrapper.prototype  = {
 		if(actions.remove){
 			for (var i = 0, len = actions.remove.length; i < len; ++i) {
 				
-				this.grid.removeSquaredEntityByCoor(actions.remove[i], true);
+				this.grid.removeByMap(actions.remove[i], true);
 
 				actions.remove[i].removeFromScene(this.scenes.main);
 
@@ -325,7 +319,7 @@ ThreeWrapper.prototype  = {
 		if(actions.add){
 			for (var i = 0, len = actions.add.length; i < len; ++i) {
 				
-				this.addSquareEntity(actions.add[i], {destination: actions.add[i].destination});
+				this.addSquareEntity(actions.add[i], {destination: actions.add[i].destination}, true);
 				/*
 				this.grid.addSquaredEntityByCoor(actions.add[i], true);
 
@@ -343,8 +337,8 @@ ThreeWrapper.prototype  = {
 		if(actions.move){
 			for (var i = 0, len = actions.move.length; i < len; ++i) {
 				
-				this.grid.removeSquaredEntityByCoor(actions.move[i]);
-
+				//this.grid.removeSquaredEntityByCoor(actions.move[i]);
+				this.grid.removeByMap(actions.move[i], false);
 				var inc = this.grid.getRandomSlot();
 				
 				actions.move[i].destination = new THREE.Vector3(
@@ -360,8 +354,9 @@ ThreeWrapper.prototype  = {
 
 			for (var i = 0, len = actions.validate.length; i < len; ++i) {
 				
-				this.grid.removeSquaredEntityByCoor(actions.validate[i]);
-				
+				//this.grid.removeSquaredEntityByCoor(actions.validate[i]);
+				this.grid.removeByMap(actions.validate[i], false);
+
 				actions.validate[i].oldPosition = new THREE.Vector3( 
 					actions.validate[i].getPosition().x,
 					actions.validate[i].getPosition().y,
@@ -530,8 +525,8 @@ ThreeWrapper.prototype  = {
 					me.entitiesManager.entities[key].actions.continuous[i](me);
 				}
 
+
 				if(me.entitiesManager.entities[key].destination){
-					console.log("des");
 					var vec = fakeVector.subVectors(
 						me.entitiesManager.entities[key].destination,
 						me.entitiesManager.entities[key].getPosition()
@@ -539,8 +534,16 @@ ThreeWrapper.prototype  = {
 
 					if( (me.entitiesManager.entities[key].speed * me.entitiesSpeedFactor) >= me.entitiesManager.entities[key].destination.distanceTo(me.entitiesManager.entities[key].getPosition())){
 						me.entitiesManager.entities[key].setPosition(me.entitiesManager.entities[key].destination);
-						me.entitiesManager.entities[key].onDestinationReach(me, me.entitiesManager.entities[key].destination);
+						
+						
+						var destination = new THREE.Vector3(
+							me.entitiesManager.entities[key].destination.x,
+							me.entitiesManager.entities[key].destination.y,
+							me.entitiesManager.entities[key].destination.z
+						);
+
 						me.entitiesManager.entities[key].destination = null;
+						me.entitiesManager.entities[key].onDestinationReach(me, destination);
 
 					}
 					else {

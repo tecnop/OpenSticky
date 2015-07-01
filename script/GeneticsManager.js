@@ -55,35 +55,72 @@ GeneticsManager.prototype = {
 			entityFitness = entity.calculateFitness(three).percent,
 			ratio = parseInt(toKill * 100 / three.grid.expectedCases);
 
+		if(this.LOG){
+			console.log("[#] ratio : " + ratio + " ; toKill : " + toKill);
+		}
+
 		// Stable
 		if (Math.abs(ratio) <= 10){
+			if(this.LOG){
+				console.log("\t # Stable");
+			}
 
 			// I'm perfect
 			if (entityFitness >= 100){
+
+				if(this.LOG){
+					console.log("\t\t -> validate");
+				}
+
 				return new Actions({validate : [entity]});
+			} else {
+				//var rdm = Math.floor(Math.random() * 100);
 			}
 		}
-		// More !
+		// Need More !
 		else if (ratio < 0) {
 			var rdm = Math.floor(Math.random() * 100);
 
-			// Cross
-			if (rdm >= 0){ // CHANGE ME
-				var moveRdm = Math.floor(Math.random() * 100);
+			if(this.LOG){
+				console.log("\t # More");
+			}
 
+			// Validate if i'm perfect
+			if (rdm <= 5 && entityFitness == 100){
+				if(this.LOG){
+					console.log("\t\t -> Validate.");
+				}
+				return new Actions({validate : [entity]});
+			}
+
+			// Cross
+			if (rdm <= 50){
+
+				if(this.LOG){
+					console.log("\t\t -> Cross");
+				}
+
+				var moveRdm = Math.floor(Math.random() * 100);
 				// Move anyway ..
 				if (moveRdm < 15) {
+					if(this.LOG){
+						console.log("\t\t\t -> Cross, but move anyway.");
+					}
+
 					return new Actions({move : [entity]});
 				}
 
 				var max = 5;
 				
-				var coor = three.grid.coorToIndex(entity.getPosition().x, entity.getPosition().y);
+				var slot = three.grid.getSlotByMap(entity.getPosition().x, entity.getPosition().y);
 				
-				var pickable = three.grid.getEntitiesInRectAdvanced(coor.i - 5, coor.i + 5, coor.j -5, coor.j +5, entity);
+				var pickable = three.grid.getEntitiesInRectAdvanced(slot.i - 5, slot.i + 5, slot.j -5, slot.j +5, entity);
 
 				// Nothing found for crossing .. Move
 				if (pickable.length <= 0){
+					if(this.LOG){
+						console.log("\t\t\t -> Cross, nothing to pick. Move anyway.");
+					}
 					return new Actions({move : [entity]});
 				}
 
@@ -135,6 +172,10 @@ GeneticsManager.prototype = {
 						break;
 					}
 				}
+
+				if(this.LOG){
+					console.log("\t\t\t -> Cross, selection : ", selection);
+				}
 				
 				var choiceRdm = Math.floor(Math.random() * 100);
 				
@@ -159,12 +200,16 @@ GeneticsManager.prototype = {
 			}
 			// Mutate
 			else { // TODO
-
+				if(this.LOG){
+					console.log("\t\t -> Mutate");
+				}
 			}
 		}
 		// Less ...
 		else {
-
+			if(this.LOG){
+				console.log("\t # Less");
+			}
 			// It's TOO TOO much, sorry for you ... 
 			if (ratio > 50){
 				return new Actions({remove : [entity]});
@@ -173,21 +218,6 @@ GeneticsManager.prototype = {
 			var squares = entity.removeSquares(1);
 
 			return new Actions({removeSquares : [squares]});
-		}
-
-		return;
-		// Trop
-		if (toKill > 0){
-			//parseInt(res * 100 / this.childs.length)
-			ratio = parseInt(toKill * 100 / three.grid.expectedCases);
-		}
-		// Pas assez 
-		else {
-			ratio = parseInt((-1*toKill) * 100 / three.grid.expectedCases);
-		}
-
-		if (ratio <= 10){
-
 		}
 	},
 	squareEvaluation : function(three){

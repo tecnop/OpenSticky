@@ -484,9 +484,9 @@ Entity.squared.prototype = {
 		var res = 0;
 
 		for (var i = 0, len = this.childs.length; i < len; ++i){
-			var slot = three.grid.getSlotByCoor(this.childs[i].object.position.x, this.childs[i].object.position.y);
+			var slot = three.grid.getSlotByMap(this.childs[i].object.position.x, this.childs[i].object.position.y);
 
-			if(slot && slot.state == 0)
+			if(slot && slot.state != 3)
 				++res;
 		}
 
@@ -618,7 +618,7 @@ Entity.squared.prototype = {
 
 			if (this.calculateFitness(three).percent >= 100){
 				
-				three.grid.validateEntity(this);
+				three.grid.validateEntityByMap(this);
 
 				this.posed = true;
 
@@ -628,21 +628,22 @@ Entity.squared.prototype = {
 					this.setColor(col);
 				}
 
-				//three.entitiesManager.remove(this);
+				three.entitiesManager.remove(this);
+				three.grid.removeByMap()
 			}
 			else {
 				console.log("too late .. Curr : ", this.object.position , " Des : ", this.oldPosition, " Distance : ", this.oldPosition.distanceTo(this.object.position));
-				this.destination = new THREE.Vector3(	this.oldPosition.x,
-														this.oldPosition.y,
-														this.oldPosition.z
-													);
+				
+				this.destination = new THREE.Vector3(1,1,1);
+				this.destination.copy(this.oldPosition);
 
-				//three.grid.addSquaredEntityByCoor(this, false);
+				three.grid.addByMap(this, false);
 			}
 
 		}
 		else {
-			three.grid.addSquaredEntityByCoor(this, false);
+			//three.grid.addSquaredEntityByCoor(this, false);
+			three.grid.addByMap(this, false);
 		}
 		
 	}

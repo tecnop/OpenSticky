@@ -18,7 +18,7 @@ $(document).ready(function()  {
 		
 	});
 	//*/
-	
+
 	injectInputs($('#inputs'),threeWrapper);
 
 	var inputs = new InputsListeners({
@@ -115,11 +115,23 @@ $(document).ready(function()  {
 			},
 			'r' : function (three) {
 
-				for(var k in three.entitiesManager.entities){
-					var slot = three.grid.getRandomSlot();
+				if(three.entitiesManager.last.old){
+					three.entitiesManager.last.destination = new THREE.Vector3(1,1,1);
+					
+					three.entitiesManager.last.destination.copy(three.entitiesManager.last.old);
 
-					three.entitiesManager.entities[k].destination = new THREE.Vector3(slot.threeX, slot.threeY, three.entitiesManager.entities[k].object.position.z); 
+					delete three.entitiesManager.last.old;
 				}
+				else {
+					three.entitiesManager.last.old = new THREE.Vector3(1,1,1);
+					three.entitiesManager.last.old.copy(three.entitiesManager.last.getPosition());
+
+					three.entitiesManager.last.destination = new THREE.Vector3(
+					three.entitiesManager.last.getPosition().x, 
+					three.entitiesManager.last.getPosition().y,
+					0);
+				}
+			
 			}
 		}
 	});

@@ -42,6 +42,8 @@ Grid.prototype = {
 			/*Poulet au*/ currY = this.startY;
 
 		this.grid = [];
+		this.map = {};
+
 		this.maxWidth = this.width - (this.width % this.step);
 		this.maxHeight = this.height - (this.height % this.step);
 
@@ -61,11 +63,18 @@ Grid.prototype = {
 
 			//lineMsg += "[" 
 			for (var j = 0; j < w; ++j) {
-				this.grid[i].push(new GridSlot({
+
+				var incSlot = new GridSlot({
 					threeX : currX,
 					threeY : currY,
-				}));
+					i : i,
+					j : j
+				});
 
+				this.grid[i].push(incSlot);
+
+				this.map[currX + '_' + currY] = incSlot;
+				
 
 				//lineMsg += "# x : " + currX + ", y : " + currY + " #";
 
@@ -91,6 +100,16 @@ Grid.prototype = {
 		vector.x = vector.x - (vector.x % this.step);
 		vector.y = vector.y - (vector.y % this.step);
 	},
+	coorToMapKey : function(x, y){
+
+		x = x - (x%this.step);
+		y = y - (y%this.step);
+
+		return x + '_' + y;
+	},
+	/*
+	# Do NoT WorKs !
+
 	coorToIndex : function(x, y){
 
 		x = (x - (x % this.step)) - (this.startX) ;
@@ -101,17 +120,51 @@ Grid.prototype = {
 
 		return {i : Math.abs(incY) ,j : Math.abs(incX)};
 
-		/*
-		x = (x - (x % this.step)) + this.startX ;
-		y = (y - (y % this.step)) + this.startY ;
 
-		//console.log("coorToIndex :: x  : " + x + " y : " + y);
-		//console.log("coorToIndex :: i  : " + x/ this.step + " j : " + y/ this.step);
-		return {i : (-1*x) / this.step, j : y / this.step};
-		*/
+	},
+	*/
+	/* 
+	# Actions on Map
+	*/
+	addByMap : function(entity, definitive){
+		var key = this.coorToMapKey(entity.head.object.position.x, entity.head.object.position.y);
+		
+		if (!this.map[key]){
+			if(this.LOG){
+				console.warn("Cannot *add* entity. Map's key '" + key + "' dosent exists..");
+			}
+			return;
+		}
+
+		if(definitive)
+			this.entitiesCases += entity.childs.length;
+
+		this.map[key].addEntity(entity);
+
+	},
+	removeByMap : function(entity, definitive){
+		var key = this.coorToMapKey(entity.head.object.position.x, entity.head.object.position.y);
+		
+		if (!this.map[key]){
+			if(this.LOG){
+				console.warn("Cannot *remove* entity. Map's key '" + key + "' dosent exists..");
+			}
+			return;
+		}
+
+		if(definitive)
+			this.entitiesCases -= entity.childs.length;
+
+		this.map[key].removeEntity(entity);
+
+	},
+	getSlotByMap : function(x, y){
+		var key = this.coorToMapKey(x, y);
+
+		return this.map[key] ? this.map[key] : null;
 	},
 	/* 
-	# Actions 
+	# Actions on List
 	*/
 	// Add
 	addSquaredEntityByCoor : function(entity, definitive){
@@ -171,6 +224,7 @@ Grid.prototype = {
 
 		return this.grid[i][j];
 	},
+	/**/
 	getHeadsInRect : function (sI, eI, sJ, eJ){
 		if ( sI < 0 || sI > this.maxWidthIndex ||
 			 eI < 0 || eI > this.maxWidthIndex ||
@@ -208,12 +262,14 @@ Grid.prototype = {
 		var res = [];
 
 		for (var i = sI; i < eI; ++i) {
+
 			for (var j = sJ; j < eJ; ++j) {
 
-				if(this.grid[i][j].entities.length > 0) {
-					for (var k = 0, len = this.grid[i][j].entities.length; k < len; ++k)
-						res.push(this.grid[i][j].entities[k].owner);
+				for (var k in this.grid[i][j].entities){
+
+					res.push(this.grid[i][j].entities[k].owner);
 				}
+				
 			}
 		}
 		return res;
@@ -230,17 +286,14 @@ Grid.prototype = {
 		var res = [];
 
 		for (var i = sI; i < eI; ++i) {
+
 			for (var j = sJ; j < eJ; ++j) {
 
-				if(this.grid[i][j].entities.length > 0) {
+				for (var k in this.grid[i][j].entities){
 
-					for (var k = 0, len = this.grid[i][j].entities.length; k < len; ++k){
-
-						if(sourceEntity.key != this.grid[i][j].entities[k].owner.key){
-							res.push(this.grid[i][j].entities[k].owner);
-						}
+					if(sourceEntity.key !== k){
+						res.push(this.grid[i][j].entities[k]);
 					}
-						
 				}
 			}
 		}
@@ -248,6 +301,9 @@ Grid.prototype = {
 
 	},
 	// Random
+	getRandomMapKey : function(){
+		var x = Math.floor(Math.random() * this.grid.length);
+	},
 	getRandomSlot : function(){
 		var rI = Math.floor(Math.random() * this.grid.length);
 			//choosenOne = this.grid[rI][ Math.floor(Math.random() * this.grid[rI].length) ];
@@ -257,6 +313,18 @@ Grid.prototype = {
 	/*
 	# Entities managing
 	*/
+	validateEntityByMap : function(entity){
+		for (var i = 0, len = entity.childs.length; i < len; ++i){
+			var key = this.coorToMapKey(entity.childs[i].object.position.x, entity.childs[i].object.position.y);
+			
+			if(!this.map[key]){
+				console.error("Trying to validate entity at unexisting slot (key : '" + key + "').");
+				continue;
+			}
+
+			this.map[key].state = 3;
+		}
+	},
 	validateEntity : function(entity){
 		//console.log("validateEntity ! ", entity);
 		for (var i = 0, len = entity.childs.length; i < len; ++i){
@@ -270,28 +338,19 @@ Grid.prototype = {
 			this.grid[coor.i][coor.j].state = 3;
 		}
 	},
-	currEntitiesIndex : -1,
-	currEntitiesList : null,
-	nextEntity : function(){
-		if (!this.currEntityList || this.currEntitiesIndex >= this.currEntityList.length){
-			this.currEntityList = this.getEntitiesList();
-			this.currEntitiesIndex = -1;
-		}
-
-		return ++this.currEntitiesIndex < this.currEntityList.length ? this.currEntityList[this.currEntitiesIndex] : null;
-	},
 	getEntitiesList : function(){
 		var res = [];
 
-		for (var i = 0; i < this.maxWidthIndex; ++i) {
+		for (var i = 0; i < this.grid.length; ++i) {
 	
-			for (var j = 0; j < this.maxHeightIndex; ++j) {
-				if(this.grid[i][j].entities.length > 0 && this.grid[i][j].state != 3) {
-					for (var e = 0; e < this.grid[i][j].entities.length; ++e){
+			for (var j = 0; j < this.grid[i].length; ++j) {
 
-						if(this.grid[i][j].entities[e].isHead) {
-							res.push(this.grid[i][j].entities[e].owner);
-						}
+				if(this.grid[i][j].state != 3) {
+
+					for (var k in this.grid[i][j].entities) {
+
+						
+						res.push(this.grid[i][j].entities[k]);
 						
 					}
 					
@@ -329,40 +388,42 @@ var GridSlot = function(data){
 # Data :
 	state <enum>
 		0 : empty
-		1 : pending : entity is moving to this slot
 		2 : occupied
-		3 : posed
 */
 GridSlot.prototype = {
 	init : function(data){
 		this.threeX = data.threeX;
 		this.threeY = data.threeY;
-		this.entities = [];
+		this.i = data.i;
+		this.j = data.j;
+		this.locked = false;
+		this.entities = {};
 		this.state = 0;
 		
 
 	},
 	addEntity : function(entitySquare){
 		this.state = 2;
-		this.entities.push(entitySquare);
+		this.entities[entitySquare.key] = entitySquare;
+
 	},
 	removeEntity : function(entitySquare){
-		if (this.entities.length == 1){
-			this.state = 0;
-			this.entities.pop();
+		if (this.entities[entitySquare.key]) {
+			delete this.entities[entitySquare.key];
 		}
-		else {
-			var newEntities = [];
 
-			for (var i = 0; i < this.entities.length; ++i){
-				if (this.entities[i].key != entitySquare.key){
-					newEntities.push(this.entities[i]);
-				}
-			}
-			this.entities = newEntities;
+		if (this.getSize() <= 0) {
+			this.state = 0;
 		}
 	},
-	setPending : function(entitySquare){
-
+	getEntity : function(key){
+		return this.entities[key] ? this.entities[key] : null;
+	},
+	getSize : function(){
+		res = 0;
+		for(var k in this.entities){
+			++res;
+		}
+		return res;
 	}
 }
