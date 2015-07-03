@@ -108,16 +108,22 @@ Entity.random.constructor.prototype = {
 
 		var incCol = new THREE.Color(Math.random(), Math.random(), Math.random());
 
+
+		//* Default THREE shader
+
 		//MeshBasicMaterial - MeshLambertMaterial - MeshPhongMaterial
 		me.material = new THREE.MeshBasicMaterial({
 			color: me.color.getHex(),
 		});
+		//*/
 		
-		/*me.material = new THREE.ShaderMaterial( {
+		/* Custom (htexml inline shaderz) shaders (vertex + fragment)
+		me.material = new THREE.ShaderMaterial( {
 		    vertexShader:  document.getElementById('vertexShader1'),
 		    fragmentShader: document.getElementById('fragmentShader1')
 		});
-*/
+		//*/
+
 		me.material.emissive = new THREE.Color(0,0,0);
 		
 		me.material.transparent = true;
@@ -136,6 +142,7 @@ Entity.random.constructor.prototype = {
 			return three.getSquareColor(me, {width : me.size.width, height : me.size.height});
 		};
 
+		/*
 		me.up = true;
 
 		if (me.opacityFactor < 15) { 
@@ -223,11 +230,12 @@ Entity.random.constructor.prototype = {
 				}
 			});
 		}
+		//*/
 
 
 
 
-
+		//* Rotations
 		if(me.rorationFactor < 10){
 			me.actions.continuous.push(function(three) {
 				me.object.rotation.z += 0.03;
@@ -248,7 +256,7 @@ Entity.random.constructor.prototype = {
 				me.object.rotation.z -= 0.01;
 			});
 		}
-
+		//*/
 	},
 	defineCubeMesh : function(){
 		var me = this,
