@@ -1,0 +1,146 @@
+
+
+
+
+
+<html>
+
+	<head>
+		<script type="x-shader/x-vertex" id="vertexShader1">
+			varying vec2 vUv;
+			varying float noise;
+
+			float turbulence( vec3 p ) {
+			    float w = 100.0;
+			    float t = -.5;
+			    for (float f = 1.0 ; f <= 10.0 ; f++ ){
+			        float power = pow( 2.0, f );
+			        t += abs( pnoise( vec3( power * p ), vec3( 10.0, 10.0, 10.0 ) ) / power );
+			    }
+			    return t;
+			}
+
+			void main() {
+
+			    vUv = uv;
+
+			    // get a turbulent 3d noise using the normal, normal to high freq
+			    noise = 10.0 *  -.10 * turbulence( .5 * normal );
+			    // get a 3d noise using the position, low frequency
+			    float b = 5.0 * pnoise( 0.05 * position, vec3( 100.0 ) );
+			    // compose both noises
+			    float displacement = - 10. * noise + b;
+			    
+			    // move the position along the normal and transform it
+			    vec3 newPosition = position + normal * displacement;
+			    gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+
+			}
+		</script>
+
+		<script type="x-shader/x-vertex" id="fragmentShader1">
+		varying vec2 vUv;
+		varying float noise;
+
+		void main() {
+
+		    // compose the colour using the UV coordinate
+		    // and modulate it with the noise like ambient occlusion
+		    vec3 color = vec3( vUv * ( 1. - 2. * noise ), 0.0 );
+		    gl_FragColor = vec4( color.rgb, 1.0 );
+
+		}
+		</script>
+
+		<script src="jquery.js">
+		</script>
+
+		<script src="jqueryui.js">
+		</script>
+
+		<script src="three.js">
+		</script>
+
+		<script src="orbitcontrol.js">
+		</script>
+		
+		<script src="script/main.js">
+		</script>
+
+		<script src="script/Color.js">
+		</script>
+
+		<script src="script/Entity.js">
+		</script>
+
+		<script src="script/EntitiesManager.js">
+		</script>
+		
+		<script src="script/HiddenCanvas.js">
+		</script>
+
+		<script src="script/GeneticsManager.js">
+		</script>
+			
+		<script src="script/Datas.js">
+		</script>
+
+		<script src="script/Grid.js">
+		</script>
+		
+		<script src="script/Componentz.js">
+		</script>
+		
+		<script src="script/three-wrapper.js">
+		</script>
+
+		<script src="script/inputs.js">
+		</script>
+
+		<style type="text/css">
+
+			#bottom-content {
+				width: 100%;
+				background-color: #ECECEC;
+				border: 1px solid #ccc;
+				border-radius: 4px;
+				padding: 5px;
+				margin-top : 10px;
+				margin-bottom : 2px;
+				margin-left : 2px;
+				margin-right : 2px;
+
+			}
+
+			.components-row {
+				width: 100%;
+			}
+
+			
+		</style>
+	</head>
+
+	<body>
+		<div id="top-content"> 
+			<div id="main-canvas">
+			</div>
+		</div>
+
+		<div id="bottom-content">
+			<canvas style="display:none" id="hidden-canvas"></canvas>
+			
+			<div id="dragNdrop">
+			</div>
+
+			<div id="inputs">
+					<div id="row1" class="components-row"></div>
+					<div id="row2" class="components-row"></div>
+					<div id="row3" class="components-row"></div>
+					<div id="row4" class="components-row"></div>
+			</div>
+
+		</div>
+	</body>
+
+	
+</html>

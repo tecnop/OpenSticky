@@ -61,20 +61,37 @@ GeneticsManager.prototype = {
 
 		// Stable
 		if (Math.abs(ratio) <= 10){
+
 			if(this.LOG){
 				console.log("\t # Stable");
 			}
 
+			
+
 			// I'm perfect
 			if (entityFitness >= 100){
 
-				if(this.LOG){
-					console.log("\t\t -> validate");
-				}
+				var validateRdm = Math.floor(Math.random() * 100);
 
-				return new Actions({validate : [entity]});
+				if(validateRdm <= 95){
+
+					if(this.LOG){
+						console.log("\t\t -> validate");
+					}
+
+					return new Actions({validate : [entity]});
+				} else {
+
+					if(this.LOG){
+						console.log("\t\t -> validate, but move anyway");
+					}
+
+					return new Actions({move : [entity]});
+				}
 			} else {
-				//var rdm = Math.floor(Math.random() * 100);
+				var rdm = Math.floor(Math.random() * 100);
+
+
 			}
 		}
 		// Need More !
@@ -408,6 +425,8 @@ GeneticsManager.prototype = {
 		three.executeActions(actions);
 
 	},
+
+	
 	evaluate : function(data){
 		var me = this,
 			populationFitness = me.threeWrapper.calculatePopulationFitness(),
@@ -555,3 +574,6 @@ Actions.prototype = {
 		this.removeSquares = data.removeSquares;
 	}
 };
+
+
+
