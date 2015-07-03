@@ -3,7 +3,7 @@ var GeneticsManager = function(data){
 }
 
 GeneticsManager.prototype = {
-	LOG : false,
+	LOG : true,
 	MAX_CROSS_PICK_COUNT : 6,
 	SELECTION_TYPE : [
 		// Roulette
@@ -24,9 +24,17 @@ GeneticsManager.prototype = {
 		me.selection = {};
 	},
 	squareEvaluationByStep : function (three, entity){
-		var toKill = three.grid.getEntitiesSquareCount() - three.grid.expectedCases,
+		/* Grid Infos : <List>
+			0 totalCases,
+			1 currentSquares,
+			2 missingCases,
+			3 lockedCases
+		*/
+		var gridInfos = three.grid.getGridInfos();
+		
+		var toKill = gridInfos[1] - gridInfos[2],
 			entityFitness = entity.calculateFitness(three).percent,
-			ratio = parseInt(toKill * 100 / three.grid.expectedCases);
+			ratio = parseInt(toKill * 100 / gridInfos[2] );
 
 		if(this.LOG){
 			console.log("[#] ratio : " + ratio + " ; toKill : " + toKill);
@@ -118,7 +126,7 @@ GeneticsManager.prototype = {
 				return new Actions({move : [entity]});
 			}
 			// Cross
-			else if (rdm <= 65){
+			else if (rdm <= 100){ // OLD : 65
 
 				if(this.LOG){
 					console.log("\t\t -> Cross");
@@ -166,6 +174,9 @@ GeneticsManager.prototype = {
 
 					// Result is corrupted (a kind of zombie !) ..
 					if(!inc) {
+						if(this.LOG){
+							console.log("\t\t\t -> Cross, created entity is corrupted. Coninue");
+						}
 						continue;
 					}
 
@@ -201,21 +212,19 @@ GeneticsManager.prototype = {
 				
 				var choiceRdm = Math.floor(Math.random() * 100);
 				
-
-				if (choiceRdm < 5 && selection[3].length > 0){
+				if (choiceRdm <= 5 && selection[3].length > 0){
 					return new Actions({add : [selection[3].pop()]});
 				}
-				if (choiceRdm < 15 && selection[2].length > 0) {
+				if (choiceRdm <= 15 && selection[2].length > 0) {
 					return new Actions({add : [selection[2].pop()]});
 				}
-				if (choiceRdm < 40 && selection[1].length > 0){
+				if (choiceRdm <= 40 && selection[1].length > 0){
 					return new Actions({add : [selection[1].pop()]});
 				}
 				if (selection[0].length > 0) {
 					return new Actions({add : [selection[0].pop()]});
 				}
-
-				// Mmh .. I hope it will never go there ..
+				
 				console.warn("No selection found in cross..");
 				return null; 
 				

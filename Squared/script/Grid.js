@@ -56,6 +56,7 @@ Grid.prototype = {
 		//var lineMsg = "";
 		this.expectedCases = 0;
 		this.entitiesCases = 0;
+		this.startExpectedCases = 0;
 
 		for (var i = 0; i < h; ++i) {
 			this.grid.push([]);
@@ -89,6 +90,9 @@ Grid.prototype = {
 		}
 		//console.log(lineMsg);
 
+		this.startExpectedCases = this.expectedCases;
+		this.staticExpectedCases = this.expectedCases;
+
 	},
 	clipCoor : function (vector){
 		return new THREE.Vector3( 
@@ -107,22 +111,6 @@ Grid.prototype = {
 
 		return x + '_' + y;
 	},
-	/*
-	# Do NoT WorKs !
-
-	coorToIndex : function(x, y){
-
-		x = (x - (x % this.step)) - (this.startX) ;
-		y = (y - (y % this.step)) - (this.startY) ;
-
-		var incX = x == 0 ? 0 : x / this.step,
-			incY = y == 0 ? 0 : y / this.step;
-
-		return {i : Math.abs(incY) ,j : Math.abs(incX)};
-
-
-	},
-	*/
 	/* 
 	# Actions on Map
 	*/
@@ -264,11 +252,12 @@ Grid.prototype = {
 
 		sI = sI < 0 ? 0 : sI > this.maxWidthIndex ? this.maxWidthIndex : sI;
 		eI = eI < 0 ? 0 : eI > this.maxWidthIndex ? this.maxWidthIndex : eI;
-		
+
 		sJ = sJ < 0 ? 0 : sJ > this.maxHeightIndex ? this.maxHeightIndex : sJ; 
 		eJ = eJ < 0 ? 0 : eJ > this.maxHeightIndex ? this.maxHeightIndex : eJ;
 
-		var res = [];
+		var res = [],
+			cpt = 0;
 
 		for (var i = sI; i < eI; ++i) {
 
@@ -278,6 +267,11 @@ Grid.prototype = {
 
 					if(sourceEntity.key !== k){
 						res.push(this.grid[i][j].entities[k]);
+
+						if(++cpt >= max){
+							return res;
+						}
+
 					}
 				}
 			}
@@ -307,12 +301,18 @@ Grid.prototype = {
 				continue;
 			}
 
+			--this.staticExpectedCases;
 			this.map[key].locked = true;
 		}
 	},
 	getEntitiesList : function(){
 		var res = [];
 
+		if(this.listLocked){
+			return res;
+		}
+
+		this.listLocked = true;
 		for (var i = 0; i < this.grid.length; ++i) {
 	
 			for (var j = 0; j < this.grid[i].length; ++j) {
@@ -327,6 +327,7 @@ Grid.prototype = {
 					
 			}
 		}
+		this.listLocked = false;
 
 		return res;
 
@@ -347,6 +348,40 @@ Grid.prototype = {
 		}
 
 		return cpt;
+	},
+	getGridInfos : function(){
+		var totalCases = 0,
+			currentSquares = 0,
+			missingCases = 0,
+			lockedCases = 0;
+
+		for (var i = 0; i < this.grid.length; ++i) {
+	
+			for (var j = 0; j < this.grid[i].length; ++j) {
+
+				for (var k in this.grid[i][j].entities) {
+
+					currentSquares += this.grid[i][j].entities[k].childs.length;
+
+				}
+
+				if (this.grid[i][j].locked)
+					++lockedCases;
+				else
+					++missingCases;
+
+				++totalCases;
+				
+			}
+		}
+
+		return [
+			totalCases,
+			currentSquares,
+			missingCases,
+			lockedCases
+		];
+
 	},
 	gridToString : function (){
 		console.log("*** Grid : ***");
@@ -415,7 +450,7 @@ GridSlot.prototype = {
 		return this.entities[key] ? this.entities[key] : null;
 	},
 	getSize : function(){
-		res = 0;
+		var res = 0;
 		for(var k in this.entities){
 			++res;
 		}

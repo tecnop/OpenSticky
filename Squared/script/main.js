@@ -49,9 +49,22 @@ $(document).ready(function()  {
 				three.imagePlaneWrapper.imagePlane.visible = !three.imagePlaneWrapper.imagePlane.visible;
 			},
 			'e' : function(three) {
-				console.log("Expected : " + three.grid.expectedCases);
-				console.log("<calculated cpt> / <static cpt> : " + three.grid.getEntitiesSquareCount() + " / " + three.grid.entitiesCases);
-				
+				/*[
+					totalCases,
+					currentSquares,
+					missingCases,
+					lockedCases
+				]*/
+
+				var res = three.grid.getGridInfos(),
+					msg = [
+						'# Stats : ',
+						'Total Cases : ' + res[0],
+						'Total Squares : ' + res[1],
+						'Missing + Locked / Total: ' + res[2] + ' + ' + res[3] + ' / ' + res[0]
+					]
+		
+				console.log(msg.join('\n'));
 			},
 			'p' : function(three) {
 				three.pause();
@@ -79,38 +92,20 @@ $(document).ready(function()  {
 					);
 
 				}
-
-				return;
-				var next = three.grid.nextEntity();
-				if(!next){
-					console.warn("next is null .. cannot use genetics.");
-					return;
-				}
-
-				var actions = three.geneticsManager.squareEvaluationByStep(three, next);
-
-				three.executeActions(actions);
-				//three.geneticsManager.squareEvaluation(three);
 			},
 			'c' : function(three) {
 
-				for(var k in three.entitiesManager.entities){
-
-					var col = three.entitiesManager.entities[k].actions.rules.getsquare(three);
-					
-			
-
-					if(col){
-						three.entitiesManager.entities[k].setColor(col);
-					}
-	
-				}
+				
 				
 			},
 			'm' : function(three) {
 
-				for(var k in three.entitiesManager.entities){
-					three.entitiesManager.entities[k].destination = three.getRandomPositionInImagePlane(
+				for (var k in three.entitiesManager.entities) {
+					var inc = three.grid.getRandomSlot();
+
+					three.entitiesManager.entities[k].destination = new THREE.Vector3(
+						inc.threeX,
+						inc.threeY,
 						three.entitiesManager.entities[k].object.position.z
 					);
 				}

@@ -18,7 +18,7 @@ ThreeWrapper.prototype  = {
 	MAX_DEPTH : 10,
 	//
 	startDelay : 2,
-	gridStep : 40,
+	gridStep : 20,
 	paused : false,
 	entitiesSpeedFactor : 1,
 	defaultImage : 'img/jap.jpg',
@@ -299,7 +299,7 @@ ThreeWrapper.prototype  = {
 				
 				//this.grid.removeSquaredEntityByCoor(actions.move[i]);
 				this.grid.removeByMap(actions.move[i], false);
-				
+
 				var inc = this.grid.getRandomSlot();
 				
 				actions.move[i].destination = new THREE.Vector3(
