@@ -25,6 +25,7 @@ var Grid = function (data){
 Grid.prototype = {
 	DEBUG_MODE : true,
 	BASE_VECTOR : new THREE.Vector3(0,0,0),
+	MAX_NEXT_ENTITY_ITERATION : 10,
 	LOG : false,
 	init : function(data){
 
@@ -259,9 +260,9 @@ Grid.prototype = {
 		var res = [],
 			cpt = 0;
 
-		for (var i = sI; i < eI; ++i) {
+		for (var i = sI; i < (eI-1); ++i) {
 
-			for (var j = sJ; j < eJ; ++j) {
+			for (var j = sJ; j < (eJ-1); ++j) {
 
 				for (var k in this.grid[i][j].entities){
 
@@ -280,8 +281,17 @@ Grid.prototype = {
 
 	},
 	// Random
-	getRandomMapKey : function(){
-		var x = Math.floor(Math.random() * this.grid.length);
+	getRandomSlotInRect : function(sI, eI, sJ, eJ){
+		
+		sI = sI < 0 ? 0 : sI > this.maxWidthIndex ? this.maxWidthIndex : sI;
+		eI = eI < 0 ? 0 : eI > this.maxWidthIndex ? this.maxWidthIndex : eI;
+
+		sJ = sJ < 0 ? 0 : sJ > this.maxHeightIndex ? this.maxHeightIndex : sJ; 
+		eJ = eJ < 0 ? 0 : eJ > this.maxHeightIndex ? this.maxHeightIndex : eJ;
+
+		return this.grid
+			[Math.floor(Math.random() * ((eI-1) - sI + 1)) + sI]
+			[Math.floor(Math.random() * ((eJ-1) - sJ + 1)) + sJ];
 	},
 	getRandomSlot : function(){
 		var rI = Math.floor(Math.random() * this.grid.length);
@@ -304,6 +314,46 @@ Grid.prototype = {
 			--this.staticExpectedCases;
 			this.map[key].locked = true;
 		}
+	},
+	nextI : 0,
+	nextJ : 0,
+	nextSlot : function(){
+
+		var ent = this.grid[this.nextI][this.nextJ];
+
+		//if (this.grid[this.nextI][this.nextJ].locked)
+
+		//console.log ( this.nextI + "][" + this.nextJ + "; Len : " + this.grid[this.nextI].length );
+
+		if(this.nextJ + 1 >= this.grid[this.nextI].length){
+			this.nextJ = 0;
+
+			if (this.nextI + 1 >= (this.maxHeightIndex + 1) ){
+				this.nextI = 0;
+			}
+			else {
+				++this.nextI;
+			}
+
+		}
+		else {
+			++this.nextJ;
+		}
+
+		return ent;
+
+	},
+	nextEntity : function(iter){
+
+		if(iter >= this.MAX_NEXT_ENTITY_ITERATION)
+			return null;
+
+		var ent = this.nextSlot().getRandomEntity();
+
+		if(ent)
+			return ent;
+
+		this.nextEntity(++iter);
 	},
 	getEntitiesList : function(){
 		var res = [];
@@ -445,6 +495,21 @@ GridSlot.prototype = {
 		if (this.getSize() <= 0) {
 			this.state = 0;
 		}
+	},
+	getRandomEntity : function(){
+
+		var size = this.getSize(),
+			i = 0,
+			rdm = Math.floor(Math.random() * size);
+
+		for (var e in this.entities) {
+			if(rdm == i) {
+				return this.entities[e];
+			}
+			++i;
+		}
+
+		return null;
 	},
 	getEntity : function(key){
 		return this.entities[key] ? this.entities[key] : null;

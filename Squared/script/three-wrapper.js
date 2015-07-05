@@ -190,7 +190,7 @@ ThreeWrapper.prototype  = {
 					row : 4,
 					intMatrix : Datas.cubesByInt[Math.floor(Math.random() * Datas.cubesByInt.length)],
 				},
-				headColor : new THREE.Color(1.0, 1.0, 1.0),
+				//headColor : new THREE.Color(1.0, 1.0, 1.0),
 			});
 
 
@@ -439,6 +439,12 @@ ThreeWrapper.prototype  = {
 			
 		});
 	},
+	toggleEntitiesView : function(){
+
+		for (var k in this.entitiesManager.entities){
+			this.entitiesManager.entities[k].toggleVisible();
+		}
+	},
 	// TO USE
 	changeFramerate : function(time){
 		var me = this;
@@ -537,15 +543,67 @@ ThreeWrapper.prototype  = {
 
 			}
 
+
+			if(me.geneticsMode){
+				for (var i = 0; i < 30; ++i){
+					var ent = me.grid.nextSlot().getRandomEntity();
+
+					if(ent){
+						me.executeActions(
+							me.geneticsManager.squareEvaluationByStep(me, ent)
+						);
+					}
+				}
+			}
+
 			me.renderer.render(me.scenes.main, me.cameras.main);
 		}
 
+		
+		
 		run();
 	}
 
 }
 
+var genetics2 = function (three) {
+	var list = three.grid.getEntitiesList();
 
+	if (three.paused){
+		clearInterval(three.geneticsInterval);
+		return;
+	}
+
+
+	if(three.geneticsMode){
+		for (var i = 0, len = list.length; i < len; ++i){
+
+			three.executeActions(
+				three.geneticsManager.squareEvaluationByStep(three, list[i])
+			);
+
+		}
+	}
+}
+
+var genetics = function (three){
+	
+	if (three.paused){
+		clearInterval(three.geneticsInterval);
+		return;
+	}
+
+
+	if(three.geneticsMode){
+		var ent = three.grid.nextEntity(-30);
+
+		if(ent){
+			three.executeActions(
+				three.geneticsManager.squareEvaluationByStep(three, ent)
+			);
+		}
+	}
+}
 
 
 // shim layer with setTimeout fallback

@@ -22,7 +22,9 @@ InputsListeners.prototype = {
 
 		'102' : 'f',
 		'103' : 'g',
+			'71' : 'G',
 		'104' : 'h',
+			'72' : 'H',
 		'105' : 'i',
 		'106' : 'j',
 
@@ -52,7 +54,7 @@ InputsListeners.prototype = {
 		me.context = data.context;
 		$(document).on("keypress", function(e){
 			if(me.keys[me.CHARS[e.charCode]+""]){
-				me.keys[me.CHARS[e.charCode]+""](me.context);
+				me.keys[me.CHARS[e.charCode]+""](me.context,e);
 			}
 		});
 

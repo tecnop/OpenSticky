@@ -3,7 +3,7 @@ var GeneticsManager = function(data){
 }
 
 GeneticsManager.prototype = {
-	LOG : true,
+	LOG : false,
 	MAX_CROSS_PICK_COUNT : 6,
 	SELECTION_TYPE : [
 		// Roulette
@@ -85,7 +85,7 @@ GeneticsManager.prototype = {
 					if(this.LOG){
 						console.log("\t\t -> Remove square");
 					}
-					return new Actions({removeSquares : [squares]});
+					return new Actions({removeSquares : squares});
 				}
 			}
 			else {
@@ -225,8 +225,10 @@ GeneticsManager.prototype = {
 					return new Actions({add : [selection[0].pop()]});
 				}
 				
-				console.warn("No selection found in cross..");
-				return null; 
+				if(this.LOG)
+					console.log("\t\t -> No selection found in cross.. Move");
+				
+				return new Actions({move : [entity]}); 
 				
 			}
 			// Mutate
@@ -246,6 +248,24 @@ GeneticsManager.prototype = {
 				return new Actions({remove : [entity]});
 			}
 
+			var rdm = Math.floor(Math.random() *100);
+
+			// Validate if i'm perfect
+			if (rdm <= 5 && entityFitness == 100){
+				if(this.LOG){
+					console.log("\t\t -> Validate.");
+				}
+				return new Actions({validate : [entity]});
+			}
+
+			// Move anyway
+			if (rdm <= 20) {
+				if(this.LOG){
+					console.log("\t\t -> Move anyway.");
+				}
+				return new Actions({move : [entity]});
+			}
+
 			var squares = entity.removeSquares(1);
 
 			if(!squares){
@@ -258,7 +278,7 @@ GeneticsManager.prototype = {
 				if(this.LOG){
 					console.log("\t\t -> Remove square");
 				}
-				return new Actions({removeSquares : [squares]});
+				return new Actions({removeSquares : squares});
 			}
 			
 		}

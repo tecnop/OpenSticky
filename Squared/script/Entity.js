@@ -15,6 +15,8 @@ Entity.squared.prototype = {
 	init : function(data){
 		var me = this;
 
+		this.memory = new Memory();
+
 		this.onValidation = false;
 		this.posed = false;
 
@@ -98,6 +100,7 @@ Entity.squared.prototype = {
 					depth : this.depth,
 					startX : currX,
 					startY : currY,
+					matrixPosition : Math.pow(2, i),
 					position : new THREE.Vector3(
 						currX,
 						currY,
@@ -125,7 +128,7 @@ Entity.squared.prototype = {
 			scene.remove(this.childs[i].object);
 		}
 	},
-	removeSquares : function(count){
+	removeSquares : function(count, three){
 		if (this.childs.length <= 1){
 			return;
 		}
@@ -133,8 +136,11 @@ Entity.squared.prototype = {
 		var toDelete = [],
 			next = this.childs.pop();
 
-		while (next){
+		while (next) {
 			toDelete.push(next);
+			
+			this.matrix.intMatrix = this.matrix.intMatrix ^ next.matrixPosition;
+			
 
 			if(--count <= 0)
 				break;
@@ -147,6 +153,11 @@ Entity.squared.prototype = {
 	add : function(vector){
 		for (var i = 0, len = this.childs.length; i < len; ++i){
 			this.childs[i].add(vector);
+		}
+	},
+	toggleVisible : function (){
+		for (var i = 0, len = this.childs.length; i < len; ++i){
+			this.childs[i].object.visible = !this.childs[i].object.visible;
 		}
 	},
 	getPosition : function(){
@@ -279,6 +290,7 @@ Entity.squared.prototype = {
 			}
 		});
 	},
+	/* Mutate */
 	randomMutate : function(add){
 
 	},
@@ -344,7 +356,7 @@ Entity.squared.prototype = {
 				three.grid.removeByMap(this, true);
 			}
 			else {
-				console.log("too late .. Curr : ", this.object.position , " Des : ", this.oldPosition, " Distance : ", this.oldPosition.distanceTo(this.object.position));
+				//console.log("too late .. Curr : ", this.object.position , " Des : ", this.oldPosition, " Distance : ", this.oldPosition.distanceTo(this.object.position));
 				
 				this.destination = new THREE.Vector3(1,1,1);
 				this.destination.copy(this.oldPosition);
@@ -354,6 +366,16 @@ Entity.squared.prototype = {
 
 		}
 		else {
+			var slot = three.grid.getSlotByMap(this.head.object.position.x, this.head.object.position.y);
+
+			if (slot.locked) {
+				var inc = three.grid.getRandomSlotInRect(slot.i - 7, slot.i + 7, slot.j - 7, slot.j + 7);
+				
+
+				this.destination = new THREE.Vector3(inc.threeX, inc.threeY, this.head.object.position.z);
+				return;
+			}
+
 			//three.grid.addSquaredEntityByCoor(this, false);
 			three.grid.addByMap(this, false);
 		}
@@ -376,7 +398,7 @@ EntitySquare.prototype = {
 			data.material
 		);
 
-		
+		this.matrixPosition = data.matrixPosition;
 		this.startX = data.startX;
 		this.startY = data.startY;		
 
@@ -393,3 +415,30 @@ EntitySquare.prototype = {
 	}
 }
 
+ 
+var Memory = function(data){
+	this.init(data);
+}
+
+Memory.prototype = {
+	init : function(data) {
+		this.lockedPositionMap = {};
+	},
+	buildKey : function(vector){
+		return vector.x + '_' + vector.y;
+	},
+	addPosition : function(vector){
+		var k = this.buildKey(vector);
+
+		if(this.lockedPositionMap[k])
+			return;
+
+		this.lockedPositionMap[k] = true;
+	},
+	hasPosition : function(vector){
+		var k = this.buildKey(vector);
+
+		return this.lockedPositionMap[k] || false;
+	},
+
+}

@@ -45,8 +45,16 @@ $(document).ready(function()  {
 				three.entities[three.entities.length-1].add(new THREE.Vector3(three.gridStep, 0, 0));
 			},
 
-			'h' : function(three) {
+			'h' : function(three, evt) {
+				
 				three.imagePlaneWrapper.imagePlane.visible = !three.imagePlaneWrapper.imagePlane.visible;
+				
+			},
+			'H' : function(three, evt) {
+				three.toggleEntitiesView();
+			},
+			'f' : function(three){
+				new THREEx.FullScreen.request();
 			},
 			'e' : function(three) {
 				/*[
@@ -76,13 +84,41 @@ $(document).ready(function()  {
 
 			},
 			't' : function(three) {
-				three.executeActions(new Actions( {validate : [three.entitiesManager.last] } ) );
+				var squares = three.entitiesManager.last.removeSquares(1);
+
+				three.executeActions(new Actions({removeSquares : squares}));
+				//three.executeActions(new Actions( {validate : [three.entitiesManager.last] } ) );
 			},
 			'y' : function(three) {
 				console.log(three.grid.gridToString());
 			},
+			'G' : function(three) {
+				var list = three.grid.getEntitiesList();
 
+				for (var i = 0, len = list.length; i < len; ++i){
+
+					three.executeActions(
+						three.geneticsManager.squareEvaluationByStep(three, list[i])
+					);
+
+				}
+			},
 			'g' : function(three) {
+
+				three.geneticsMode = true;
+
+				return;
+				// TESTING ONLY
+				var ent = three.grid.nextSlot().getRandomEntity();
+
+				if(ent){
+					three.executeActions(
+						three.geneticsManager.squareEvaluationByStep(three, ent)
+					);
+				}
+
+				return;
+				// OLD OLD
 				var list = three.grid.getEntitiesList();
 
 				for (var i = 0, len = list.length; i < len; ++i){
