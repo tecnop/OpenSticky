@@ -109,27 +109,69 @@ Entity.random.constructor.prototype = {
 		var incCol = new THREE.Color(Math.random(), Math.random(), Math.random());
 
 
-		//* Default THREE shader
+		/* Default THREE shader
 
 		//MeshBasicMaterial - MeshLambertMaterial - MeshPhongMaterial
 		me.material = new THREE.MeshBasicMaterial({
 			color: me.color.getHex(),
 		});
 		//*/
+
+    var attributes = {
+		displacement: {
+			type: 'f', // a float
+			value: [] // an empty array
+		}		
+	};
+	
+	this.uniforms = {
+		amplitude: {
+			type: 'f', // a float
+			value: 0
+		},
+		shadColor: {
+			type: 'c', value: []
+		},
+		time: {
+			type: 'f', value: 1.0
+		}
+	};
+
+
+
 		
-		/* Custom (htexml inline shaderz) shaders (vertex + fragment)
+		//* Custom (htexml inline shaderz) shaders (vertex + fragment)
 		me.material = new THREE.ShaderMaterial( {
-		    vertexShader:  document.getElementById('vertexShader1'),
-		    fragmentShader: document.getElementById('fragmentShader1')
+			uniforms:     	this.uniforms,
+			attributes:     attributes,
+		    vertexShader:  document.getElementById('vertexShader1').text,
+		    fragmentShader: document.getElementById('fragmentShader1').text
 		});
 		//*/
 
-		me.material.emissive = new THREE.Color(0,0,0);
-		
-		me.material.transparent = true;
-		me.material.opacity = Math.floor(Math.random() * (Entity.random.MAX_OPACITY - Entity.random.MIN_OPACITY + 1)) + Entity.random.MIN_OPACITY;
+		me.uniforms.shadColor.value = new THREE.Color(Math.random() * 1.0,Math.random() * 1.0,Math.random() * 1.0);
+	// create a new mesh with geometry -
+	// we will cover the sphereMaterial next!
+	me.object = new THREE.Mesh(me.geometry, me.material);
 
-		me.object = new THREE.Mesh(me.geometry, me.material);
+	var vertices = me.geometry.vertices;
+	var values = attributes.displacement.value
+	for(var v = 0; v < vertices.length; v++) {
+		values.push(Math.random() * 15);
+	}
+
+
+		//me.material.emissive = new THREE.Color(0,0,0);
+		
+		//me.material.transparent = true;
+		//me.material.opacity = Math.floor(Math.random() * (Entity.random.MAX_OPACITY - Entity.random.MIN_OPACITY + 1)) + Entity.random.MIN_OPACITY;
+
+		//me.object = new THREE.Mesh(me.geometry, me.material);
+		
+
+
+
+
 		me.object.position.z = me.getNextZ();
 		me.actions = {};
 		me.actions.rules = {};
@@ -262,8 +304,9 @@ Entity.random.constructor.prototype = {
 		var me = this,
 			z = Math.floor(Math.random() * (Entity.random.MAX_DEPTH - Entity.random.MIN_DEPTH + 1)) + Entity.random.MIN_DEPTH,
 			geometry = new THREE.BoxGeometry(me.size.width, me.size.height, z);
-
-		//geometry.computeBoundingSphere();
+			geometry.computeFaceNormals();
+			geometry.computeVertexNormals();
+					//geometry.computeBoundingSphere();
 
 		return geometry;
 	},
@@ -302,8 +345,9 @@ Entity.random.constructor.prototype = {
 	},
 	setColor : function(color){
 		var me = this;
-		me.color = color;
-		me.material.color.copy(color);
+		//me.color = color;
+		me.uniforms.shadColor.value = color;
+		//me.material.color.copy(color);
 	},
 	getPosition : function(){
 		return this.object.position;

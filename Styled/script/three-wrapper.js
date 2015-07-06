@@ -10,7 +10,7 @@ ThreeWrapper.prototype  = {
 	CAMERA_Z : 1300,
 	// Entity
 	count : 1000,
-	Z_GAP : 300,
+	Z_GAP : 0,
 	Z_STEP : 0.1,
 	MIN_SPEED : 25,
 	MAX_SPEED : 25,
@@ -219,7 +219,7 @@ ThreeWrapper.prototype  = {
 		this.Z_STEP = 0.1;
 		/* Setting new parmas*/
 		Entity.random.defineRandomValues(newParams);
-
+		Entity.currZ = 2;
 		/* Reset */
 		for (var k in this.entitiesManager.entities) {
 			this.scenes.main.remove(this.entitiesManager.entities[k].object);
@@ -357,8 +357,14 @@ ThreeWrapper.prototype  = {
 		var me = this,
 			fakeVector = new THREE.Vector3(0,0,0);
 
+		this.frame = 0;
+		this.delta = 0;
+		this.facteur = -0.5;
+		this.turn = 0;
+		var clock = new THREE.Clock();
 		function run () {
 
+			me.delta = clock.getDelta();
 			if(me.paused)
 				return;
 
@@ -406,8 +412,25 @@ ThreeWrapper.prototype  = {
 						);
 					}
 				}
-			}
 
+				me.entitiesManager.entities[key].uniforms.amplitude.value = Math.sin(me.frame);
+				//me.entitiesManager.entities[key].uniforms.time.value += me.delta * 7;
+				me.entitiesManager.entities[key].uniforms.time.value = me.facteur;
+				//me.entitiesManager.entities[key].uniforms.time.value = clock.elapsedTime;
+
+			}
+			
+			me.frame += 0.1;
+			if(me.turn == 0)
+				if(me.facteur < 0.15)
+					me.facteur += 0.01;
+				else
+					me.turn = 1;
+			else
+				if(me.facteur > -0.15)
+					me.facteur -= 0.01;
+				else
+					me.turn = 0;
 			if(me.evaluateMode){
 				me.geneticsManager.fastEvaluation();
 			}
