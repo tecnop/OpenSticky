@@ -11,12 +11,15 @@ ThreeWrapper.prototype  = {
 	// Entity
 	count : 1,
 	Z_GAP : 300,
-	Z_STEP : 0.1,
+	Z_STEP : 20,
 	MIN_SPEED : 25,
 	MAX_SPEED : 25,
 	MIN_DEPTH : 10,
 	MAX_DEPTH : 10,
 	//
+	GENETICS_ITERATION : 100,
+	//
+	currentStep : 0,
 	startDelay : 2,
 	gridStep : 20,
 	paused : false,
@@ -26,7 +29,7 @@ ThreeWrapper.prototype  = {
 	inject : function(data){
 		var me = this;
 		me.evaluateMode = false;
-
+		me.currentStep = me.Z_GAP;
 		me.size = data.size || {width : 800, height : 600};
 		me.imagePlaneSize = data.imagePlaneSize || {width : 800, height : 600};
 		me.paused = data.paused || false;
@@ -157,6 +160,8 @@ ThreeWrapper.prototype  = {
 		pointLight.position.y = 0;
 		pointLight.position.z = 3000;
 
+		me.pointLight = pointLight;
+
 		me.defineImagePlane({path : me.defaultImage}, function(){
 
 			me.grid = new Grid({
@@ -206,25 +211,26 @@ ThreeWrapper.prototype  = {
 
 		fn(data.count);
 	},
-	// FIX ME
 	reset : function(newParams){
-		console.log("newParams : ", newParams);
-		this.Z_STEP = 0.1;
-		/* Setting new parmas*/
-		Entity.random.defineRandomValues(newParams);
+		console.log("#Reset : ", newParams);
+		//this.Z_STEP = 0.1;
+		this.currentStep = this.Z_GAP;
+		this.gridStep = newParams.step || this.gridStep;
 
-		/* Reset */
-		for (var k in this.entitiesManager.entities) {
-			this.scenes.main.remove(this.entitiesManager.entities[k].object);
+		this.grid.clear(this);
+
+		this.grid = new Grid({
+			step : this.gridStep,
+			imagePlaneWrapper : this.imagePlaneWrapper
+		});
+
+		for (var k in this.entitiesManager.entities){
+			this.entitiesManager.entities[k].removeFromScene(this.scenes.main);
 		}
 
 		this.entitiesManager.clear();
 
-		delete this.geneticsManager.selection;
-
-		this.geneticsManager.selection = {};
-
-		this.initEntities({count : newParams.count || this.count});
+		this.initSquaredEntities({count : newParams.count || this.count})
 	},
 	/*
 	# Entities Actions
@@ -237,13 +243,17 @@ ThreeWrapper.prototype  = {
 
 		entity.pushIntoScene(this.scenes.main);
 
-		destination.z = this.Z_GAP + (++this.Z_STEP);
 		
+
+		destination.z = this.currentStep;
+		
+		this.currentStep += this.Z_STEP;
+
 		this.entitiesManager.add(entity);
 
 		entity.destination = destination;
 
-		entity.onChildsChange = function(currEntity, newList, oldList) {
+/*		entity.onChildsChange = function(currEntity, newList, oldList) {
 
 			for (var i = 0; i < newList.length; ++i){
 				me.scenes.main.add(newList[i].object);
@@ -252,7 +262,7 @@ ThreeWrapper.prototype  = {
 				me.scenes.main.remove(oldList[i].object);
 			}
 
-		}
+		}*/
 
 		this.grid.removeByMap(entity, false);
 
@@ -301,7 +311,12 @@ ThreeWrapper.prototype  = {
 				this.grid.removeByMap(actions.move[i], false);
 
 				var inc = this.grid.getRandomSlot();
-				
+
+				/*
+				var currSlot = this.grid.getSlotByMap(actions.move[i].getPosition().x, actions.move[i].getPosition().y );
+				var inc = this.grid.tryGetRandomFreeSlotInRect(currSlot.i - 5, currSlot.i + 5, currSlot.j - 5, currSlot.j + 5 );
+				*/
+
 				actions.move[i].destination = new THREE.Vector3(
 					inc.threeX, inc.threeY, actions.move[i].getPosition().z
 				);
@@ -543,9 +558,10 @@ ThreeWrapper.prototype  = {
 
 			}
 
+			me.pointLight.position.copy(me.cameras.main.position);
 
 			if(me.geneticsMode){
-				for (var i = 0; i < 30; ++i){
+				for (var i = 0; i < me.GENETICS_ITERATION; ++i){
 					var ent = me.grid.nextSlot().getRandomEntity();
 
 					if(ent){

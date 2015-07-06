@@ -230,7 +230,20 @@ $(document).ready(function()  {
 							item.container.removeClass("hover-fail");
 							item.container.addClass("hover-win");
 
-							threeWrapper.defineImagePlane({path:data.dataURI});
+							threeWrapper.defineImagePlane({path:data.dataURI}, function(){
+
+								threeWrapper.grid.clearValidatedEntities(threeWrapper);
+								
+								threeWrapper.grid = new Grid({
+									step : threeWrapper.gridStep,
+									imagePlaneWrapper : threeWrapper.imagePlaneWrapper
+								});
+
+								
+								//threeWrapper.initSquaredEntities({count : threeWrapper.count});
+							
+							});
+
 							
 						});
 						return false;  
@@ -278,20 +291,20 @@ var injectInputs = function(div, three){
 			inlineBlock : true,
 			hideTypeInLabel : true,
 		},
-		defaultValue : "1000",
+		defaultValue : "2",
 		helpers : {
 			step : 50,
 			max : 5000,
-			min : 1,
+			min : 2,
 		}
 	});
 
 
-	var minWidthBox = new Componentz.InputBox.constructor({
+	var cubeSizeBox = new Componentz.InputBox.constructor({
 		container : $('#row2'),
 		width : 180,
 		item : {
-			label : "Min Width",
+			label : "Cube Size",
 			description : "number of entities",
 			dataType : "uinteger",
 			required : true,
@@ -300,160 +313,11 @@ var injectInputs = function(div, three){
 			inlineBlock : true,
 			hideTypeInLabel : true,
 		},
-		defaultValue : "2",
+		defaultValue : "20",
 		helpers : {
-			step : 2,
-			max : 128,
-			min : 2,
-		}
-	});
-
-	var maxWidthBox = new Componentz.InputBox.constructor({
-		container : $('#row2'),
-		width : 180,
-		item : {
-			label : "Max Width",
-			description : "number of entities",
-			dataType : "uinteger",
-			required : true,
-		},
-		options : {
-			inlineBlock : true,
-			hideTypeInLabel : true,
-		},
-		defaultValue : "16",
-		helpers : {
-			step : 2,
-			max : 128,
-			min : 2,
-		}
-	});
-
-	var minHeightBox = new Componentz.InputBox.constructor({
-		container : $('#row2'),
-		width : 180,
-		item : {
-			label : "Min Height",
-			description : "number of entities",
-			dataType : "uinteger",
-	 		required : true,
-		},
-		options : {
-			inlineBlock : true,
-			hideTypeInLabel : true,
-		},
-		defaultValue : "2",
-		helpers : {
-			step : 2,
-			max : 128,
-			min : 2,
-		}
-	});
-
-	var maxHeightBox = new Componentz.InputBox.constructor({
-		container : $('#row2'),
-		width : 180,
-		item : {
-			label : "Max Height",
-			description : "number of entities",
-			dataType : "uinteger",
-			required : true,
-		},
-		options : {
-			inlineBlock : true,
-			hideTypeInLabel : true,
-		},
-		defaultValue : "16",
-		helpers : {
-			step : 2,
-			max : 128,
-			min : 2,
-		}
-	});
-	/*
-	# Row 3
-	*/
-	var minDepthBox = new Componentz.InputBox.constructor({
-		container : $('#row3'),
-		width : 180,
-		item : {
-			label : "Min Depth",
-			description : "depth of entities (z axes)",
-			dataType : "uinteger",
-			required : false,
-		},
-		options : {
-			inlineBlock : true
-		},
-		defaultValue : "1",
-		helpers : {
-			round : 1,
 			step : 1,
-			max : 500,
+			max : 100,
 			min : 1,
-		}
-	});
-
-	var maxDepthBox = new Componentz.InputBox.constructor({
-		container : $('#row3'),
-		width : 180,
-		item : {
-			label : "Max Depth",
-			description : "depth of entities (z axes)",
-			dataType : "uinteger",
-			required : false,
-		},
-		options : {
-			inlineBlock : true
-		},
-		defaultValue : "1",
-		helpers : {
-			round : 1,
-			step : 1,
-			max : 500,
-			min : 1,
-		}
-	});
-
-	var minZstepBox = new Componentz.InputBox.constructor({
-		container : $('#row3'),
-		width : 180,
-		item : {
-			label : "Min Z Step",
-			description : "distance (z axes) between objects",
-			dataType : "float",
-			required : false,
-		},
-		options : {
-			inlineBlock : true
-		},
-		defaultValue : "0.3",
-		helpers : {
-			round : 2,
-			step : 0.1,
-			max : 1000,
-			min : 0.1,
-		}
-	});
-
-	var maxZstepBox = new Componentz.InputBox.constructor({
-		container : $('#row3'),
-		width : 180,
-		item : {
-			label : "Max Z Step",
-			description : "distance (z axes) between objects",
-			dataType : "float",
-			required : false,
-		},
-		options : {
-			inlineBlock : true
-		},
-		defaultValue : "0.3",
-		helpers : {
-			round : 2,
-			step : 0.1,
-			max : 1000,
-			min : 0.1,
 		}
 	});
 
@@ -465,16 +329,8 @@ var injectInputs = function(div, three){
 		label : "Go !",
 		action : function(e, item){
 			three.reset({
-				count : countBox.getValue(),
-				MIN_WIDTH : minWidthBox.getValue(),
-				MAX_WIDTH : maxWidthBox.getValue(),
-				MIN_HEIGHT : minHeightBox.getValue(),
-				MAX_HEIGHT : maxHeightBox.getValue(),
-				/*MIN_Z_STEP : minZstepBox.getValue(),
-				MAX_Z_STEP : maxZstepBox.getValue(),*/
-				MIN_DEPTH : minDepthBox.getValue(),
-				MAX_DEPTH : maxDepthBox.getValue()
-
+				count : countBox.parseValue(),
+				step : cubeSizeBox.parseValue(),
 			});
 		}
 	});

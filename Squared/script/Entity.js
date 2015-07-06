@@ -15,7 +15,7 @@ Entity.squared.prototype = {
 	init : function(data){
 		var me = this;
 
-		this.memory = new Memory();
+		//this.memory = new Memory();
 
 		this.onValidation = false;
 		this.posed = false;
@@ -51,9 +51,15 @@ Entity.squared.prototype = {
 			}),
 			basic : new THREE.MeshBasicMaterial({
 				color : data.color
+			}),
+			phong : new THREE.MeshPhongMaterial({
+				color : data.color
 			})
 
 		}
+
+		this.currentMaterial = 'default';
+
 		this.materials.default.transparent = data.opacity ? true : false;
 		this.materials.default.opacity = this.opacity;
 
@@ -94,7 +100,7 @@ Entity.squared.prototype = {
 
 				this.childs.push(new EntitySquare({
 					owner : this,
-					material : this.materials.basic,
+					material : this.materials[this.currentMaterial],
 					width : this.squareWidth,
 					height : this.squareHeight,
 					depth : this.depth,
@@ -183,7 +189,7 @@ Entity.squared.prototype = {
 
 	},
 	setColor : function(col){
-		this.materials.basic.color = col;
+		this.materials[this.currentMaterial].color = col;
 	},
 	calculateFitness : function(three){
 		var res = 0;
@@ -353,6 +359,7 @@ Entity.squared.prototype = {
 				}
 
 				three.entitiesManager.remove(this);
+				three.grid.validatedEntities.push(this);
 				three.grid.removeByMap(this, true);
 			}
 			else {
@@ -369,8 +376,11 @@ Entity.squared.prototype = {
 			var slot = three.grid.getSlotByMap(this.head.object.position.x, this.head.object.position.y);
 
 			if (slot.locked) {
-				var inc = three.grid.getRandomSlotInRect(slot.i - 7, slot.i + 7, slot.j - 7, slot.j + 7);
+				//var inc = three.grid.getRandomSlotInRect(slot.i - 7, slot.i + 7, slot.j - 7, slot.j + 7);
 				
+				//var inc = three.grid.tryGetRandomFreeSlotInRect(slot.i - 10, slot.i + 10, slot.j - 10, slot.j + 10);
+
+				var inc = three.grid.getRandomSlot();
 
 				this.destination = new THREE.Vector3(inc.threeX, inc.threeY, this.head.object.position.z);
 				return;

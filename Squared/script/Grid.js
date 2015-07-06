@@ -44,13 +44,11 @@ Grid.prototype = {
 
 		this.grid = [];
 		this.map = {};
+		this.validatedEntities = [];
 
 		this.maxWidth = this.width - (this.width % this.step);
 		this.maxHeight = this.height - (this.height % this.step);
 
-		this.maxHeightIndex = h -1;
-		this.maxWidthIndex = w -1;
-		
 
 		console.log(" w : " + w + " h : " + h + " step : " + this.step);
 
@@ -93,6 +91,10 @@ Grid.prototype = {
 
 		this.startExpectedCases = this.expectedCases;
 		this.staticExpectedCases = this.expectedCases;
+
+		this.maxHeightIndex = this.grid.length -1;//h -1;
+		this.maxWidthIndex = this.grid[0].length -1;//w -1;
+		
 
 	},
 	clipCoor : function (vector){
@@ -281,8 +283,33 @@ Grid.prototype = {
 
 	},
 	// Random
+	tryGetRandomFreeSlotInRect : function(sI, eI, sJ, eJ){
+		var res = [];
+
+		sI = sI < 0 ? 0 : sI > this.maxWidthIndex ? this.maxWidthIndex : sI;
+		eI = eI < 0 ? 0 : eI > this.maxWidthIndex ? this.maxWidthIndex : eI;
+
+		sJ = sJ < 0 ? 0 : sJ > this.maxHeightIndex ? this.maxHeightIndex : sJ; 
+		eJ = eJ < 0 ? 0 : eJ > this.maxHeightIndex ? this.maxHeightIndex : eJ;
+
+		for (var i = sI; i < (eI-1); ++i) {
+
+			for (var j = sJ; j < (eJ-1); ++j) {
+
+				if (! this.grid[i][j].locked)
+					res.push(this.grid[i][j]);
+			}
+		}
+
+		if (res.length <= 0){
+			return res[Math.floor(Math.random() * res.length)];
+		}
+
+		return this.getRandomSlotInRect(sI, eI, sJ, eJ);
+	},
 	getRandomSlotInRect : function(sI, eI, sJ, eJ){
-		
+
+
 		sI = sI < 0 ? 0 : sI > this.maxWidthIndex ? this.maxWidthIndex : sI;
 		eI = eI < 0 ? 0 : eI > this.maxWidthIndex ? this.maxWidthIndex : eI;
 
@@ -457,6 +484,43 @@ Grid.prototype = {
 
 		console.log("***  END  ***");
 
+	},
+	unlockAllSlots : function(three){
+		for (var i = 0; i < this.grid.length; ++i) {
+	
+			for (var j = 0; j < this.grid[i].length; ++j) {
+
+				this.grid[i][j].locked = false;
+				
+			}
+		}
+	},
+	clearValidatedEntities : function(three){
+		for (var i = 0; i < this.validatedEntities.length; ++i) {
+			this.validatedEntities[i].removeFromScene(three.scenes.main);
+		}
+		this.validatedEntities = [];
+	},
+	clear : function(three){
+
+		for (var i = 0; i < this.grid.length; ++i) {
+	
+			for (var j = 0; j < this.grid[i].length; ++j) {
+
+				for (var k in this.grid[i][j].entities) {
+					
+					this.grid[i][j].entities[k].removeFromScene(three.scenes.main);
+
+				}
+
+				this.grid[i][j].clear();
+				this.grid[i][j].state = 0;
+				this.grid[i][j].locked = false;
+			}
+		}
+
+		this.clearValidatedEntities(three);
+		
 	}
 
 }
@@ -520,5 +584,8 @@ GridSlot.prototype = {
 			++res;
 		}
 		return res;
+	},
+	clear : function(){
+		this.entities = {};
 	}
 }

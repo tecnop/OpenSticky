@@ -71,7 +71,7 @@ GeneticsManager.prototype = {
 				}
 			} 
 			// I'm not bad ..
-			else if (entityFitness >= 70 ){
+			else if (entityFitness >= 40 ){
 
 				var squares = entity.removeSquares(1);
 
@@ -88,16 +88,56 @@ GeneticsManager.prototype = {
 					return new Actions({removeSquares : squares});
 				}
 			}
+			// I'm bad (i'm bad !)
 			else {
 				var rdm = Math.floor(Math.random() * 100);
 
 
-				if (rdm <= 100){
+				// Move Anyway
+				if (rdm <= 20){
 					return new Actions({move : [entity]});
 				}
-				// TODO ::
+				// Cross
 				else if (rdm <= 60){
+					var selection = this.prepareCross(three, entity);
+					
+					if(!selection){
+						return new Actions({move : [entity]});
+					}
 
+					var choiceRdm = Math.floor(Math.random() * 100);
+					
+					if (selection[0].length > 0) {
+						return new Actions({add : [selection[0].pop()]});
+					}
+
+					if (choiceRdm <= 5 && selection[3].length > 0){
+						return new Actions({add : [selection[3].pop()]});
+					}
+					if (choiceRdm <= 15 && selection[2].length > 0) {
+						return new Actions({add : [selection[2].pop()]});
+					}
+					if (choiceRdm <= 40 && selection[1].length > 0){
+						return new Actions({add : [selection[1].pop()]});
+					}
+					
+					return new Actions({move : [entity]});
+				}
+				else {
+					var squares = entity.removeSquares(1);
+					
+					if(!squares){
+						if(this.LOG){
+							console.log("\t\t -> No square found. move anyway");
+						}
+
+						return new Actions({move : [entity]});
+					}else {
+						if(this.LOG){
+							console.log("\t\t -> Remove square");
+						}
+						return new Actions({removeSquares : squares});
+					}
 				}
 			}
 
@@ -142,68 +182,14 @@ GeneticsManager.prototype = {
 					return new Actions({move : [entity]});
 				}
 
-				var slot = three.grid.getSlotByMap(entity.getPosition().x, entity.getPosition().y);
-				
-				var pickable = three.grid.getEntitiesInRectAdvanced(slot.i - 5, slot.i + 5, slot.j -5, slot.j +5, this.MAX_CROSS_PICK_COUNT, entity);
+				var selection = this.prepareCross(three, entity);
 
 				// Nothing found for crossing .. Move
-				if (pickable.length <= 0){
+				if (!selection){
 					if(this.LOG){
 						console.log("\t\t\t -> Cross, nothing to pick. Move anyway.");
 					}
 					return new Actions({move : [entity]});
-				}
-
-				var cpt = 1,
-					selection = [
-						[], // perfect (100)
-						[], // middle class (40)
-						[], // bad's (20)
-						[]  // zero (0)
-					];
-				
-				for (var i = 0, len = pickable.length; i < len; ++i) {
-					
-					var inc = entity.randomCross(pickable[i]),
-						destination = new THREE.Vector3(
-							(entity.getPosition().x + pickable[i].getPosition().x) /2 ,
-							(entity.getPosition().y + pickable[i].getPosition().y) /2 ,
-							(entity.getPosition().z + pickable[i].getPosition().z) /2
-						);
-
-
-					// Result is corrupted (a kind of zombie !) ..
-					if(!inc) {
-						if(this.LOG){
-							console.log("\t\t\t -> Cross, created entity is corrupted. Coninue");
-						}
-						continue;
-					}
-
-					destination = three.grid.clipCoor(destination);
-
-					inc.add(destination);
-					
-					inc.destination = destination;
-
-					var fitness = inc.calculateFitness(three);
-
-					if (fitness.percent >= 100){
-						selection[0].push(inc);
-					}
-					else if (fitness.percent >= 40){
-						selection[1].push(inc);
-					}
-					else if (fitness.percent > 0){
-						selection[2].push(inc);
-					}
-					else {
-						selection[3].push(inc);
-					}
-
-					if(++cpt >= this.MAX_CROSS_PICK_COUNT){
-						break;
-					}
 				}
 
 				if(this.LOG){
@@ -283,6 +269,71 @@ GeneticsManager.prototype = {
 			
 		}
 	},
+	prepareCross : function(three, entity, max){
+		var slot = three.grid.getSlotByMap(entity.getPosition().x, entity.getPosition().y);
+		
+		var pickable = three.grid.getEntitiesInRectAdvanced(slot.i - 7, slot.i + 7, slot.j -7, slot.j +7, this.MAX_CROSS_PICK_COUNT, entity);
+
+		// Nothing found for crossing .. Move
+		if (pickable.length <= 0){
+
+			return null;
+		}
+
+		var cpt = 1,
+			selection = [
+				[], // perfect (100)
+				[], // middle class (40)
+				[], // bad's (20)
+				[]  // zero (0)
+			];
+		
+		for (var i = 0, len = pickable.length; i < len; ++i) {
+			
+			var inc = entity.randomCross(pickable[i]),
+				destination = new THREE.Vector3(
+					(entity.getPosition().x + pickable[i].getPosition().x) /2 ,
+					(entity.getPosition().y + pickable[i].getPosition().y) /2 ,
+					(entity.getPosition().z + pickable[i].getPosition().z) /2
+				);
+
+
+			// Result is corrupted (a kind of zombie !) ..
+			if(!inc) {
+				if(this.LOG){
+					console.log("\t\t\t -> Cross, created entity is corrupted. Continue");
+				}
+				continue;
+			}
+
+			destination = three.grid.clipCoor(destination);
+
+			inc.add(destination);
+			
+			inc.destination = destination;
+
+			var fitness = inc.calculateFitness(three);
+
+			if (fitness.percent >= 100){
+				selection[0].push(inc);
+			}
+			else if (fitness.percent >= 40){
+				selection[1].push(inc);
+			}
+			else if (fitness.percent > 0){
+				selection[2].push(inc);
+			}
+			else {
+				selection[3].push(inc);
+			}
+
+			if(++cpt >= this.MAX_CROSS_PICK_COUNT){
+				break;
+			}
+		}
+
+		return selection;
+	}
 	
 }
 
