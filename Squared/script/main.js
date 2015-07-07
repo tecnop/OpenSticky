@@ -160,7 +160,7 @@ $(document).ready(function()  {
 	});
 
 	var drag = new Componentz.DragAndDrod.constructor({
-		container : $('#row1'),
+		container : $('#row2'),
 		listeners : [
 			// Must register an Event for "dragover" to ask browser to regonize file dropping 
 			{
@@ -269,7 +269,7 @@ var injectInputs = function(div, three){
 	# Row 2
 	*/
 	var countBox = new Componentz.InputBox.constructor({
-		container : $('#row2'),
+		container : $('#row1'),
 		width : 180,
 		item : {
 			label : "Count",
@@ -291,7 +291,7 @@ var injectInputs = function(div, three){
 
 
 	var cubeSizeBox = new Componentz.InputBox.constructor({
-		container : $('#row2'),
+		container : $('#row1'),
 		width : 180,
 		item : {
 			label : "Cube Size",
@@ -314,9 +314,9 @@ var injectInputs = function(div, three){
 
 	var button = new Componentz.Button.constructor({
 		container : $('#row1'),
-		width : 60,
-		height : 30,
-		label : "Go !",
+		width : 100,
+		height : 60,
+		label : "Go!",
 		action : function(e, item){
 			three.reset({
 				count : countBox.parseValue(),

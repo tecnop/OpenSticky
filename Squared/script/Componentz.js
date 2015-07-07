@@ -35,7 +35,7 @@ var Componentz = {
 		injectCSS : function(){
 			var me = this,
 				cssArray = [
-					'.dragndrop-container { width : '+me.WIDTH+'px; height : '+me.HEIGHT+'px; background-color : #EFEFEF; border : 2px dashed #CCC;cursor: cell;}',
+					'.dragndrop-container { display: inline-block; width : '+me.WIDTH+'px; height : '+me.HEIGHT+'px; background-color : #EFEFEF; border : 2px dashed #CCC;cursor: cell;}',
 
 					'.dragndrop-container.hover { background-color : #DFDFDF; border : 2px dashed #205081;}',
 					
@@ -86,7 +86,6 @@ var Componentz = {
 					'width : 20px;',
 					'height : 20px;',
 					'display : inline-block;',
-					'line-height : 20px;',
 					'text-align : center;',
 					'font-weight : 600;',
 					'margin : 2px;',
@@ -120,12 +119,14 @@ var Componentz = {
 		injectCSS : function(){
 			var res = [
 				'.default-button {',
+					'display: inline-block;',
 					'background-color : #EEE;',
 					'border : 1px solid #CCC;',
 					'text-align : center;',
 					'font-weight : 600;',
 					'font-family : Consolas;',
-					'line-height : 16px;'
+					'line-height : 16px;',
+					'cursor : pointer;',
 				'}',
 
 				'.default-button:hover {',
@@ -512,7 +513,7 @@ Componentz.Button.constructor.prototype = {
 	inject : function(data) {
 		var me = this;
 
-		this.container = jQuery('<div class="default-button" style="width:'+data.width+'px;height : '+data.height+'px;">');
+		this.container = jQuery('<div class="default-button" style="width:'+data.width+'px;line-height:'+data.height+'px;height : '+data.height+'px;">');
 		this.action = data.action;
 		this.container.on('click', function(e){
 			me.action(e, me);
