@@ -1,0 +1,16 @@
+Commandes :
+
+Mouvement de la caméra à la souris (molette pour dézoomer / zoomer)
+
+'+' : Accélère les déplacements 
+'-' : Ralenti les déplacements
+
+'g' : Lance l'algorithme génétique
+
+'h' : Afficher / Masquer l'image de fond
+'H' : Afficher / Masquer les entités NON posés (shilt + h)
+
+'n' : Ajoute 1 entité aléatoire
+'e' : Affiche les stats (dans le console. 'Ctrl + Maj + J')
+
+'p' : pause

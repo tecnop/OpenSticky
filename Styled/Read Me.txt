@@ -1,0 +1,13 @@
+Commandes :
+
+Mouvement de la caméra à la souris (molette pour dézoomer / zoomer)
+
+'+' : Accélère les déplacements 
+'-' : Ralenti les déplacements*
+
+'m' : Mouvement aléatoire des blocs.
+'c' : Couleur automatique des blocs.
+
+'h' : Afficher / Masque l'image de fond
+
+'p' : pause

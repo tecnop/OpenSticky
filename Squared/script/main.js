@@ -32,18 +32,6 @@ $(document).ready(function()  {
 				three.slowDown();
 			},
 
-			'z' : function(three){
-				three.entities[three.entities.length-1].add(new THREE.Vector3(0, three.gridStep, 0));
-			},
-			's' : function(three){
-				three.entities[three.entities.length-1].add(new THREE.Vector3(0, -three.gridStep, 0));
-			},
-			'q' : function(three){
-				three.entities[three.entities.length-1].add(new THREE.Vector3(-three.gridStep, 0, 0));
-			},
-			'd' : function(three){
-				three.entities[three.entities.length-1].add(new THREE.Vector3(three.gridStep, 0, 0));
-			},
 
 			'h' : function(three, evt) {
 				
@@ -144,6 +132,8 @@ $(document).ready(function()  {
 						inc.threeY,
 						three.entitiesManager.entities[k].object.position.z
 					);
+
+					three.grid.removeByMap(three.entitiesManager.entities[k], false);
 				}
 			},
 			'r' : function (three) {

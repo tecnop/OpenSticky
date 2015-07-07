@@ -124,6 +124,8 @@ var Componentz = {
 					'border : 1px solid #CCC;',
 					'text-align : center;',
 					'font-weight : 600;',
+					'font-family : Consolas;',
+					'line-height : 16px;'
 				'}',
 
 				'.default-button:hover {',
