@@ -11,13 +11,13 @@ ThreeWrapper.prototype  = {
 	// Entity
 	count : 1,
 	Z_GAP : 300,
-	Z_STEP : 20,
+	Z_STEP : 3,
 	MIN_SPEED : 25,
 	MAX_SPEED : 25,
 	MIN_DEPTH : 10,
 	MAX_DEPTH : 10,
 	//
-	GENETICS_ITERATION : 100,
+	GENETICS_ITERATION : 40,
 	//
 	currentStep : 0,
 	startDelay : 2,
